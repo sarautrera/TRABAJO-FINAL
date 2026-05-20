@@ -1,0 +1,72 @@
+{
+  "version": "1.0",
+  "titulo": "Dungeon de prueba",
+  "turnosMaximos": 50,
+  "habitaciones": [
+    {
+      "id": 0,
+      "nombre": "Entrada",
+      "filas": 6,
+      "columnas": 7,
+      "esInicio": true,
+      "celdas": [
+        {
+          "fila": 0,
+          "col": 3,
+          "tipo": "PUERTA",
+          "conectaCon": 1,
+          "necesitaLlave": false,
+          "esSalida": false
+        },
+        {
+          "fila": 3,
+          "col": 2,
+          "tipo": "ENEMIGO",
+          "vida": 20,
+          "ataque": 5,
+          "defensa": 2
+        },
+        {
+          "fila": 1,
+          "col": 5,
+          "tipo": "OBJETO",
+          "nombre": "Pocion",
+          "efecto": "hp",
+          "valor": 20,
+          "consumible": true
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "nombre": "Sala final",
+      "filas": 5,
+      "columnas": 5,
+      "celdas": [
+        {
+          "fila": 4,
+          "col": 2,
+          "tipo": "PUERTA",
+          "conectaCon": -1,
+          "necesitaLlave": true,
+          "esSalida": true
+        }
+      ]
+    }
+  ],
+  "conexiones": [
+    {
+      "de": 0,
+      "a": 1
+    }
+  ],
+  "jugadorInicial": {
+    "habitacion": 0,
+    "fila": 5,
+    "col": 3,
+    "vida": 100,
+    "velocidad": 3,
+    "ataque": 10,
+    "defensa": 3
+  }
+}

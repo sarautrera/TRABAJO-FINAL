@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-05-20T18:40:00",
+  "turnoActual": 12,
+  "jugador": {
+    "vidaActual": 75,
+    "habitacionActual": 1,
+    "fila": 2,
+    "col": 4,
+    "inventario": [
+      {
+        "tipo": "Weapon",
+        "nombre": "Hacha",
+        "bonusAtaque": 5,
+        "usoRestante": -1,
+        "equipado": true
+      },
+      {
+        "tipo": "Key",
+        "nombre": "Llave oxidada",
+        "puertaObjetivo": 1,
+        "equipado": false
+      }
+    ]
+  },
+  "estadoHabitaciones": [
+    {
+      "id": 1,
+      "enemigos": [
+        {
+          "fila": 0,
+          "col": 2,
+          "vidaActual": 15,
+          "derrotado": false
+        }
+      ],
+      "objetosPresentes": [],
+      "puertasAbiertas": []
+    }
+  ]
+}

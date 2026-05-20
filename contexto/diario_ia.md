@@ -297,6 +297,20 @@ Para cada uso relevante de IA, anadir una entrada con este formato:
 - Critica y riesgos: esta persistencia no reconstruye ni guarda el estado completo real. Es solo un puente para que el contrato no falle hasta la integracion con Track C.
 - Decision final: mantener esta solucion temporal y sustituirla en la integracion con C por parseo/serializacion JSON completos.
 
+### Entrada 19 - Verificacion de reglas de fin de partida
+
+- Fecha: 20/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: confirmar y documentar las reglas de fin de partida.
+- Prompt o peticion: "- Implementar reglas de fin de partida: Victoria al abrir puerta de salida exterior. Derrota por vida del jugador a 0. Derrota por agotar turnos."
+- Contexto proporcionado: `GameEngineImpl` ya tenia `openDoor()`, `endTurn()` y `updateDefeatState()`.
+- Resultado obtenido: se verifico que la victoria se activa al abrir una puerta con `exteriorExit`, que la derrota por vida se activa cuando el jugador deja de estar vivo y que la derrota por turnos se activa con `turnManager.isTimeUp()`.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: compilacion correcta con `javac -encoding UTF-8 -d out` sobre todos los ficheros de `src/main/java`.
+- Critica y riesgos: las derrotas se comprueban actualmente al cerrar turno o tras cambio de habitacion. Si mas adelante se anaden trampas u otros efectos que puedan matar durante una accion, deberan llamar tambien a `updateDefeatState()`.
+- Decision final: marcar las reglas de fin de partida como implementadas en la base inicial.
+
 ## Metodologia provisional extraida
 
 1. Leer primero la documentacion oficial del proyecto.

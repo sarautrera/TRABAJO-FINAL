@@ -8,6 +8,9 @@ public abstract class Item {
     private int usesLeft;
 
     protected Item(String name, boolean consumable, int usesLeft) {
+        if (name == null || name.length() == 0) {
+            throw new IllegalArgumentException("El nombre del item no puede estar vacio");
+        }
         this.name = name;
         this.consumable = consumable;
         this.usesLeft = usesLeft;
@@ -27,6 +30,14 @@ public abstract class Item {
 
     public boolean isEquippable() {
         return false;
+    }
+
+    public boolean canUse() {
+        return usesLeft != 0;
+    }
+
+    public boolean isDepleted() {
+        return consumable && usesLeft == 0;
     }
 
     public void consumeUse() {

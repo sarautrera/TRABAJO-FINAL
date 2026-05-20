@@ -7,6 +7,9 @@ public class Potion extends Item {
 
     public Potion(String name, int hpRestore) {
         super(name, true, 1);
+        if (hpRestore <= 0) {
+            throw new IllegalArgumentException("La curacion de una pocion debe ser positiva");
+        }
         this.hpRestore = hpRestore;
     }
 
@@ -16,6 +19,9 @@ public class Potion extends Item {
 
     @Override
     public void applyEffect(Player player) {
+        if (!canUse()) {
+            throw new IllegalStateException("La pocion no tiene usos disponibles");
+        }
         player.heal(hpRestore);
         consumeUse();
     }

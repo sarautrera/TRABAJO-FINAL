@@ -7,6 +7,9 @@ public class Key extends Item {
 
     public Key(String name, int targetDoorId) {
         super(name, false, -1);
+        if (targetDoorId < 0) {
+            throw new IllegalArgumentException("El id de puerta objetivo no puede ser negativo");
+        }
         this.targetDoorId = targetDoorId;
     }
 

@@ -7,6 +7,9 @@ public class Armor extends Item {
 
     public Armor(String name, int defenseBonus) {
         super(name, false, -1);
+        if (defenseBonus < 0) {
+            throw new IllegalArgumentException("El bonus de defensa no puede ser negativo");
+        }
         this.defenseBonus = defenseBonus;
     }
 

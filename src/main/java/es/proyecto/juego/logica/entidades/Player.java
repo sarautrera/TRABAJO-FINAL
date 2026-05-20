@@ -3,6 +3,7 @@ package es.proyecto.juego.logica.entidades;
 import es.proyecto.juego.estructuras.IList;
 import es.proyecto.juego.logica.items.Armor;
 import es.proyecto.juego.logica.items.Item;
+import es.proyecto.juego.logica.items.Key;
 import es.proyecto.juego.logica.items.Weapon;
 
 public class Player {
@@ -20,6 +21,15 @@ public class Player {
 
     public Player(String name, int maxHp, int speed, int baseAttack, int baseDefense,
                   int row, int col, IList<Item> inventory) {
+        if (name == null || name.length() == 0) {
+            throw new IllegalArgumentException("El nombre del jugador no puede estar vacio");
+        }
+        if (maxHp <= 0 || speed < 0 || baseAttack < 0 || baseDefense < 0) {
+            throw new IllegalArgumentException("Atributos invalidos para el jugador");
+        }
+        if (inventory == null) {
+            throw new IllegalArgumentException("El inventario no puede ser null");
+        }
         this.name = name;
         this.hp = maxHp;
         this.maxHp = maxHp;
@@ -74,12 +84,63 @@ public class Player {
         return inventory;
     }
 
+    public Weapon getEquippedWeapon() {
+        return equippedWeapon;
+    }
+
+    public Armor getEquippedArmor() {
+        return equippedArmor;
+    }
+
+    public void addItem(Item item) {
+        if (item == null) {
+            throw new IllegalArgumentException("El item no puede ser null");
+        }
+        inventory.add(item);
+    }
+
+    public Item getInventoryItem(int index) {
+        return inventory.get(index);
+    }
+
+    public Item removeInventoryItem(int index) {
+        return inventory.remove(index);
+    }
+
+    public boolean removeInventoryItem(Item item) {
+        return inventory.remove(item);
+    }
+
+    public void useInventoryItem(int index) {
+        Item item = inventory.get(index);
+        item.applyEffect(this);
+        if (item.isDepleted()) {
+            inventory.remove(index);
+        }
+    }
+
     public void equipWeapon(Weapon weapon) {
+        if (weapon == null) {
+            throw new IllegalArgumentException("El arma no puede ser null");
+        }
         this.equippedWeapon = weapon;
     }
 
     public void equipArmor(Armor armor) {
+        if (armor == null) {
+            throw new IllegalArgumentException("La armadura no puede ser null");
+        }
         this.equippedArmor = armor;
+    }
+
+    public boolean hasKeyForDoor(int doorId) {
+        for (int i = 0; i < inventory.size(); i++) {
+            Item item = inventory.get(i);
+            if (item instanceof Key && ((Key) item).getTargetDoorId() == doorId) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void takeDamage(int damage) {

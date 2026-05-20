@@ -441,6 +441,8 @@ Estado guardado (`gameSave.json`) contiene:
 
 Punto de integracion: decidir si `GameEngineImpl.loadConfig/loadGame/saveGame` delegan en clases de persistencia de C o si B recibe objetos ya parseados. El contrato actual usa rutas de fichero, por lo que debe coordinarse con C.
 
+Estado temporal de Track B: mientras no este integrada la persistencia de Track C, `GameEngineImpl` puede validar que un fichero JSON existe, iniciar una partida base con `newGame()` y guardar un snapshot minimo. Esta solucion es solo provisional y no sustituye el parseo/serializacion final de `levelConfig.json` y `gameSave.json`.
+
 ## UML que afecta especialmente al Track B
 
 El proyecto exige:
@@ -459,6 +461,8 @@ Para Track B conviene preparar:
 - Actividad: flujo de decision de una accion de jugador en un turno.
 
 ## Tests JUnit obligatorios para Track B
+
+Nota de planificacion: no es necesario crear toda la bateria de JUnit al inicio de Fase 0. Conviene crearla cuando el dominio y `GameEngineImpl` esten mas avanzados y las firmas se hayan estabilizado. Las pruebas manuales pueden servir durante desarrollo, pero la validacion final de clases no visuales debe hacerse con JUnit si se mantiene este requisito del enunciado.
 
 ### `CombatSystem`
 
@@ -504,18 +508,18 @@ Para Track B conviene preparar:
 
 - Crear interfaces necesarias si aun no existen.
 - Crear stubs de A para desarrollo.
-- Implementar `Player`.
-- Implementar `Enemy`.
-- Implementar `Room`.
-- Implementar `Cell` y `CellType`.
-- Implementar jerarquia de items.
+- Implementar `Player`. Base inicial implementada: vida, curacion, dano, inventario, uso de items, equipamiento y llaves.
+- Implementar `Enemy`. Base inicial implementada: vida, dano, ataque y movimiento cardinal simple hacia el jugador.
+- Implementar `Room`. Base inicial implementada: matriz, colocacion/retirada de enemigos e items, puertas y validaciones.
+- Implementar `Cell` y `CellType`. Base inicial implementada con control de incompatibilidades entre item, enemigo, puerta y trampa.
+- Implementar jerarquia de items. Base inicial implementada con `Item`, `Weapon`, `Potion`, `Key` y `Armor`.
 - Tests de `Player`, `Room`, `Cell` e items.
 
 ### Semana 2: mecanicas
 
-- Implementar `CombatSystem`.
-- Implementar `TurnManager`.
-- Implementar movimiento del jugador.
+- Implementar `CombatSystem`. Base inicial implementada con formula del enunciado, validaciones y variante con roll inyectado para tests.
+- Implementar `TurnManager`. Base inicial implementada con orden circular de actores, turno de jugador, movimiento usado, accion usada y contador global.
+- Implementar movimiento del jugador. Pendiente de integrarlo en `GameEngineImpl`; `MatrixBFS` y `PathFinder.getReachableCells` ya calculan celdas alcanzables.
 - Implementar objetivos atacables.
 - Implementar IA basica de enemigos.
 - Implementar `GameEngineImpl.movePlayer()` y `attack()`.

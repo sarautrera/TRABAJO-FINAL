@@ -7,6 +7,9 @@ public class Weapon extends Item {
 
     public Weapon(String name, int attackBonus) {
         super(name, false, -1);
+        if (attackBonus < 0) {
+            throw new IllegalArgumentException("El bonus de ataque no puede ser negativo");
+        }
         this.attackBonus = attackBonus;
     }
 

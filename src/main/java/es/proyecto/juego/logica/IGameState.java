@@ -19,13 +19,29 @@ public interface IGameState {
 
     int getPlayerDefense();
 
+    String getEquippedWeaponName();
+
+    String getEquippedArmorName();
+
     IList<Item> getInventory();
+
+    int getCurrentRoomId();
+
+    String getCurrentRoomName();
+
+    int getCurrentRoomRows();
+
+    int getCurrentRoomCols();
 
     Room getCurrentRoom();
 
     int getTurnCount();
 
     int getTurnsLeft();
+
+    boolean canPlayerMove();
+
+    boolean canPlayerAct();
 
     int getMinRoomsToExit();
 

@@ -519,8 +519,38 @@ public class GameEngineImpl implements IGameEngine {
         }
 
         @Override
+        public String getEquippedWeaponName() {
+            return player.getEquippedWeapon() == null ? "" : player.getEquippedWeapon().getName();
+        }
+
+        @Override
+        public String getEquippedArmorName() {
+            return player.getEquippedArmor() == null ? "" : player.getEquippedArmor().getName();
+        }
+
+        @Override
         public IList<Item> getInventory() {
             return player.getInventory();
+        }
+
+        @Override
+        public int getCurrentRoomId() {
+            return currentRoom.getId();
+        }
+
+        @Override
+        public String getCurrentRoomName() {
+            return currentRoom.getName();
+        }
+
+        @Override
+        public int getCurrentRoomRows() {
+            return currentRoom.getRows();
+        }
+
+        @Override
+        public int getCurrentRoomCols() {
+            return currentRoom.getCols();
         }
 
         @Override
@@ -536,6 +566,16 @@ public class GameEngineImpl implements IGameEngine {
         @Override
         public int getTurnsLeft() {
             return turnManager.getTurnsLeft();
+        }
+
+        @Override
+        public boolean canPlayerMove() {
+            return !gameOver && turnManager.canMove();
+        }
+
+        @Override
+        public boolean canPlayerAct() {
+            return !gameOver && turnManager.canAct();
         }
 
         @Override

@@ -7,4 +7,7 @@ import es.proyecto.juego.estructuras.MyLinkedList;
  * No usa colecciones estandar de Java. Debe sustituirse por la lista final de Track A.
  */
 public class StubList<T> extends MyLinkedList<T> {
+    public StubList() {
+        super();
+    }
 }

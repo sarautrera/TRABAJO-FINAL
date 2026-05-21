@@ -311,6 +311,48 @@ Para cada uso relevante de IA, anadir una entrada con este formato:
 - Critica y riesgos: las derrotas se comprueban actualmente al cerrar turno o tras cambio de habitacion. Si mas adelante se anaden trampas u otros efectos que puedan matar durante una accion, deberan llamar tambien a `updateDefeatState()`.
 - Decision final: marcar las reglas de fin de partida como implementadas en la base inicial.
 
+### Entrada 20 - Tests manuales temporales
+
+- Fecha: 20/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: crear una bateria de pruebas para validar la base actual del proyecto mientras no se incorpore JUnit.
+- Prompt o peticion: "- Crear tests cuando el proyecto este mas avanzado: Usar JUnit para las clases no visuales si se mantiene como requisito del enunciado. Probar `Player`, `CombatSystem`, `Room`, `TurnManager`, estructuras propias, `MatrixBFS` y `GameEngineImpl`. Dejar los tests manuales solo como apoyo temporal durante desarrollo, no como validacion final. Registrar resultados para la memoria."
+- Contexto proporcionado: el proyecto no usa Maven ni librerias externas, y no hay JUnit disponible en el repositorio.
+- Resultado obtenido: se creo `src/test/java/es/proyecto/juego/tests/TestRunner.java` con pruebas manuales de `Player`, `CombatSystem`, `Room`, `TurnManager`, estructuras propias, `MatrixBFS` y `GameEngineImpl`.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: compilacion correcta de `src/main/java` y `src/test/java`; ejecucion correcta con `java -cp "out;out\\test" es.proyecto.juego.tests.TestRunner`, resultado 7 tests pasados y 0 fallidos.
+- Critica y riesgos: estos tests no son JUnit y no deben presentarse como validacion final si el enunciado exige JUnit. Son una red temporal mientras se decide como incorporar JUnit sin Maven o con el entorno del profesor.
+- Decision final: mantener `TestRunner` como apoyo temporal y planificar JUnit real para la fase de entrega.
+
+### Entrada 21 - Primer test JUnit para `Player`
+
+- Fecha: 20/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: empezar la bateria JUnit real por el primer bloque de pruebas, centrado en `Player`.
+- Prompt o peticion: "haz test de Junit con el 1"
+- Contexto proporcionado: no hay Maven ni jars de JUnit en el repositorio; existe un `TestRunner` manual temporal.
+- Resultado obtenido: se creo `src/test/java/es/proyecto/juego/tests/PlayerJUnitTest.java` con tests JUnit 5 para vida, curacion, equipamiento, pociones, llaves y validaciones del constructor.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: no se pudo compilar ni ejecutar JUnit porque no hay `junit-platform-console-standalone` ni otra dependencia JUnit local disponible. La compilacion de `src/main/java` sigue correcta.
+- Critica y riesgos: para ejecutar estos tests hay que anadir un jar local de JUnit 5 o confirmar que el entorno del profesor lo proporciona. Hasta entonces, los tests JUnit quedan preparados pero no verificados automaticamente.
+- Decision final: usar este fichero como inicio de la bateria JUnit real y mantener `TestRunner` como apoyo temporal.
+
+### Entrada 22 - Bateria JUnit completa inicial
+
+- Fecha: 21/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: crear el resto de tests JUnit para las clases no visuales principales.
+- Prompt o peticion: "haz el resto de test Junit"
+- Contexto proporcionado: estructura actual con tests en `test/java`, JUnit 5 en `lib` y `PlayerJUnitTest` ya funcionando.
+- Resultado obtenido: se crearon tests JUnit para `CombatSystem`, `Room`/`Cell`, `TurnManager`, estructuras propias, `MatrixBFS` y `GameEngineImpl`.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: compilacion correcta de `src/main/java` y `test/java`; ejecucion correcta con `java -jar lib\junit-platform-console-standalone-1.14.0.jar --class-path "out;out\test" --scan-class-path`, resultado 36 tests encontrados, 36 ejecutados, 36 correctos y 0 fallidos.
+- Critica y riesgos: los tests cubren la base actual y la persistencia temporal, pero cuando Track C sustituya la persistencia JSON habra que actualizar los tests de carga/guardado.
+- Decision final: usar esta bateria JUnit como validacion principal de Track B y mantener `TestRunner` solo como apoyo temporal.
+
 ## Metodologia provisional extraida
 
 1. Leer primero la documentacion oficial del proyecto.

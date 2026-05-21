@@ -464,6 +464,8 @@ Para Track B conviene preparar:
 
 Nota de planificacion: no es necesario crear toda la bateria de JUnit al inicio de Fase 0. Conviene crearla cuando el dominio y `GameEngineImpl` esten mas avanzados y las firmas se hayan estabilizado. Las pruebas manuales pueden servir durante desarrollo, pero la validacion final de clases no visuales debe hacerse con JUnit si se mantiene este requisito del enunciado.
 
+Estado temporal: se ha creado `src/test/java/es/proyecto/juego/tests/TestRunner.java` como bateria manual sin librerias externas para validar la base actual mientras no se incorpore JUnit. No sustituye los tests JUnit finales.
+
 ### `CombatSystem`
 
 - 1000 iteraciones de `calculateDamage`: resultado siempre `>= 0`.

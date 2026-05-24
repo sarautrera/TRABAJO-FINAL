@@ -1,4 +1,4 @@
-package es.uah.eedd.listas.prueba;
+package es.uah.eedd.listas.prueba.simple;
 
 public class MyLinkedList<T> implements IList<T> {
     private Node<T> head;
@@ -54,6 +54,20 @@ public class MyLinkedList<T> implements IList<T> {
             newNode.next=prev.next;
             prev.next=newNode;
             size++;
+        }
+    }
+    public Node<T> getHead(){
+        return this.head;
+    }
+    public void addAll(MyLinkedList<T> another){
+        if (another == null || another.isEmpty()) {
+            return;
+        }
+
+        Node<T> current = another.getHead();
+        while (current != null) {
+            this.add(current.value);
+            current = current.next;
         }
     }
 

@@ -1,4 +1,4 @@
-package es.uah.eedd.listas.prueba;
+package es.uah.eedd.listas.prueba.simple;
 
 public interface IList<T> {
     void add(T dato);

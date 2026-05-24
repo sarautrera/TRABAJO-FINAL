@@ -1,0 +1,7 @@
+{
+  "tripletas": [
+    {"s": "Entrada", "p": "conecta", "o": "Pasillo_Oscuro"},
+    {"s": "Pasillo_Oscuro", "p": "conecta", "o": "Sala_Tesoros"},
+    {"s": "Sala_Tesoros", "p": "contiene", "o": "Cofre_Oro"}
+  ]
+}

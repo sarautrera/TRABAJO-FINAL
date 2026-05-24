@@ -1,4 +1,4 @@
-package es.uah.eedd.listas.prueba;
+package es.uah.eedd.listas.prueba.simple;
 
 public class Node<T> {
     T value;

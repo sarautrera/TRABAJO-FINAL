@@ -1,0 +1,29 @@
+@startuml
+title Turno del Jugador: Interacción UI (Track C) y Lógica (Track B)
+
+start
+:Usuario hace clic en RoomView (celda row, col);
+:GameController recibe onCellClicked(row, col);
+
+if (engine.getReachableCells() contiene celda?) then (Sí)
+    :engine.movePlayer(row, col);
+    note right: Lógica Track B calcula BFS
+elseif (engine.getAttackTargets() contiene celda?) then (Sí)
+    :engine.attack(row, col);
+    note right: Lógica Track B calcula Daño
+else (No)
+    :Ignorar interacción;
+    stop
+endif
+
+:GameController llama a refreshAll();
+:engine.getState();
+:Vistas se repintan con los nuevos datos;
+
+if (state.isGameOver()?) then (Sí)
+    :MainApp transiciona a Escena Fin de Partida;
+else (No)
+    :Esperar siguiente acción o Fin de Turno;
+endif
+stop
+@enduml

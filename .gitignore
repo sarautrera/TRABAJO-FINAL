@@ -2,12 +2,26 @@ docs/
 
 target/
 out/
+bin/
 *.class
 *.log
 
 .idea/
 .vscode/
 *.iml
+.classpath
+.project
+.settings/
+.apt_generated/
+.factorypath
+.springBeans
+.sts4-cache/
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+.kotlin
 
 .DS_Store
 Thumbs.db

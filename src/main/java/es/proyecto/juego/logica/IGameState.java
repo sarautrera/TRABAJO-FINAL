@@ -25,6 +25,10 @@ public interface IGameState {
 
     IList<Item> getInventory();
 
+    int getMaxInventorySize();
+
+    boolean isInventoryFull();
+
     int getCurrentRoomId();
 
     String getCurrentRoomName();

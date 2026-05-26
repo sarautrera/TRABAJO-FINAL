@@ -5,8 +5,11 @@ import es.proyecto.juego.logica.items.Armor;
 import es.proyecto.juego.logica.items.Item;
 import es.proyecto.juego.logica.items.Key;
 import es.proyecto.juego.logica.items.Weapon;
+import es.proyecto.juego.logica.excepciones.InventoryFullException;
 
 public class Player {
+    public static final int MAX_INVENTORY_SIZE = 10;
+
     private final String name;
     private int hp;
     private final int maxHp;
@@ -29,6 +32,9 @@ public class Player {
         }
         if (inventory == null) {
             throw new IllegalArgumentException("El inventario no puede ser null");
+        }
+        if (inventory.size() > MAX_INVENTORY_SIZE) {
+            throw new InventoryFullException("El inventario inicial supera el limite de " + MAX_INVENTORY_SIZE);
         }
         this.name = name;
         this.hp = maxHp;
@@ -84,6 +90,14 @@ public class Player {
         return inventory;
     }
 
+    public int getMaxInventorySize() {
+        return MAX_INVENTORY_SIZE;
+    }
+
+    public boolean isInventoryFull() {
+        return inventory.size() >= MAX_INVENTORY_SIZE;
+    }
+
     public Weapon getEquippedWeapon() {
         return equippedWeapon;
     }
@@ -95,6 +109,9 @@ public class Player {
     public void addItem(Item item) {
         if (item == null) {
             throw new IllegalArgumentException("El item no puede ser null");
+        }
+        if (isInventoryFull()) {
+            throw new InventoryFullException("El inventario esta lleno");
         }
         inventory.add(item);
     }

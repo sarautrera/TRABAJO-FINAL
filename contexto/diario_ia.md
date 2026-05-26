@@ -353,6 +353,146 @@ Para cada uso relevante de IA, anadir una entrada con este formato:
 - Critica y riesgos: los tests cubren la base actual y la persistencia temporal, pero cuando Track C sustituya la persistencia JSON habra que actualizar los tests de carga/guardado.
 - Decision final: usar esta bateria JUnit como validacion principal de Track B y mantener `TestRunner` solo como apoyo temporal.
 
+### Entrada 23 - Cobertura JUnit y tests de excepciones/stubs
+
+- Fecha: 21/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: reforzar la bateria JUnit para mejorar cobertura, especialmente excepciones y clases puente.
+- Prompt o peticion: "los test de Junit tienen que tener 100% de cobertura", "me falta un 60% en excepciones", "haz el test de stub", "stublist sigue a 0"
+- Contexto proporcionado: IntelliJ se estaba usando con Run with Coverage y habia clases con cobertura baja aunque los tests funcionales pasaban.
+- Resultado obtenido: se anadieron tests JUnit para excepciones propias y `StubList`; tambien se anadio constructor explicito en `StubList` para que IntelliJ pueda atribuir cobertura a la clase puente.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: ejecucion JUnit correcta con `java -jar lib\junit-platform-console-standalone-1.14.0.jar --class-path "out;out\test" --scan-class-path`, resultado final 47 tests encontrados, 47 correctos y 0 fallidos.
+- Critica y riesgos: la cobertura de IntelliJ depende de que el directorio `test` este marcado correctamente como test source. Los tests de clases triviales pueden mejorar cobertura numerica, pero la validacion importante sigue siendo comportamiento y reglas de juego.
+- Decision final: mantener estos tests como parte de la bateria JUnit y registrar los resultados en la memoria final.
+
+### Entrada 24 - Reorganizacion de estructura de tests
+
+- Fecha: 21/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: normalizar la estructura de tests para que IntelliJ y la consola usen la misma raiz.
+- Prompt o peticion: "quiero que el source de test sea test y que no exista la carpeta java por debajo"
+- Contexto proporcionado: habia tests repartidos entre `test`, `test/java` y `test/es`, y el fichero `.iml` tenia raices solapadas.
+- Resultado obtenido: todos los tests quedaron bajo `test/es/proyecto/juego/tests`; el source root de test en el `.iml` local quedo apuntando a `test`.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: compilacion de produccion y tests correcta; ejecucion JUnit con 47 tests encontrados, 47 correctos y 0 fallidos.
+- Critica y riesgos: `.iml` esta ignorado por `.gitignore`, asi que cada integrante puede tener que marcar `test` como test source en su IntelliJ si no se versiona la configuracion del IDE.
+- Decision final: usar `test` como raiz de tests del proyecto y evitar la carpeta intermedia `test/java`.
+
+### Entrada 25 - Preparacion de integracion con Track C
+
+- Fecha: 21/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: preparar el contrato de estado y los ejemplos JSON para que Track C pueda empezar UI/persistencia.
+- Prompt o peticion: "- Preparar integracion con Track C: Asegurar que `IGameState` devuelve todo lo que necesita la UI. Mantener `GameEngineImpl` sin imports de JavaFX. Preparar JSON de ejemplo coherente con el estado real del juego."
+- Contexto proporcionado: `IGameState` ya exponia jugador, habitacion, turnos, rutas y logs, pero faltaban datos directos para UI como nombre/dimensiones de sala, equipo y acciones disponibles.
+- Resultado obtenido: `IGameState` se amplio con getters de arma equipada, armadura equipada, id/nombre/dimensiones de habitacion y flags `canPlayerMove()`/`canPlayerAct()`; `GameEngineImpl.GameStateSnapshot` implementa esos datos; `levelConfig.example.json` y `gameSave.example.json` se actualizaron para reflejar la partida base real de `newGame()`.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: busqueda en `src/main/java` sin imports `javafx`; compilacion correcta; JUnit con 47 tests correctos.
+- Critica y riesgos: `loadConfig()` y `loadGame()` siguen sin parsear completamente JSON. Los ejemplos son contrato provisional coherente, no persistencia final.
+- Decision final: entregar esta base a Track C y cerrar con el equipo el formato JSON definitivo.
+
+### Entrada 26 - Revision general de cumplimiento
+
+- Fecha: 21/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: revisar el codigo frente a las especificaciones conocidas.
+- Prompt o peticion: "revisa todo el codigo para ver si cumplimos las especificaciones"
+- Contexto proporcionado: estado completo de Track B, tests JUnit, contratos de Fase 0 y contexto del proyecto.
+- Resultado obtenido: se confirmo que la logica no importa JavaFX, que produccion no usa colecciones estandar, que la base de Track B esta implementada y que los JUnit pasan. Se detectaron pendientes: persistencia JSON real, mutabilidad de datos devueltos por `IGameState`, decision de grafo dirigido/no dirigido, puertas reciprocas, posible BFS de enemigos, limite de inventario y posible `IList extends Iterable`.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: compilacion y JUnit correctos con 47 tests correctos.
+- Critica y riesgos: el proyecto no puede considerarse cerrado al 100% mientras la persistencia JSON final y la integracion con UI no esten implementadas.
+- Decision final: anotar estos riesgos como pendientes reales antes de cerrar la entrega.
+
+### Entrada 27 - Actualizacion de documentacion y pendientes
+
+- Fecha: 21/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: mantener actualizados el diario de IA, el contexto del Track B y la lista de decisiones abiertas.
+- Prompt o peticion: "- Actualizar documentacion: Anadir cada intervencion relevante al `diario_ia.md`. Documentar decisiones abiertas: objetos bloquean o no, apertura de puertas, llaves, inventario, rango de ataque. Mantener el contexto del Track B actualizado segun cambios reales del codigo."
+- Contexto proporcionado: entradas anteriores del diario, contexto tecnico de Track B, estructura actual de tests y cambios recientes de integracion con Track C.
+- Resultado obtenido: se documentaron las intervenciones recientes y se actualizo el contexto para reflejar el estado real de JUnit, `IGameState`, JSON de ejemplo y decisiones abiertas.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: revision manual de los ficheros de documentacion.
+- Critica y riesgos: siguen pendientes nombres/responsables del grupo y registrar resultados de coverage en IntelliJ cuando se ejecute de forma definitiva.
+- Decision final: mantener estos documentos vivos hasta el cierre de memoria.
+
+### Entrada 28 - Copias defensivas en `IGameState`
+
+- Fecha: 21/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: evitar que la UI pueda modificar directamente estado interno del motor mediante objetos devueltos por `IGameState`.
+- Prompt o peticion: "Copias defensivas en IGameState. Ahora devuelve Room, inventario y log reales. Podemos evitar que la UI modifique estado directamente devolviendo copias con estructuras propias o anadiendo getters mas especificos."
+- Contexto proporcionado: `GameStateSnapshot` devolvia referencias reales a inventario, habitacion y log; esto era un riesgo para integracion con Track C.
+- Resultado obtenido: `getInventory()`, `getCurrentRoom()`, `getPathToExit()` y `getEventLog()` devuelven copias defensivas usando estructuras propias. La copia de sala crea una nueva `Room`, nuevas `Cell` y copias de enemigos/items principales.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: compilacion correcta de produccion y tests; JUnit con 48 tests encontrados, 48 correctos y 0 fallidos. Se anadio un test que intenta mutar inventario, log y sala devueltos por `IGameState` y verifica que el estado real no cambia.
+- Critica y riesgos: los DTOs especificos para UI podrian ser mas limpios que exponer `Room`, pero la copia defensiva reduce el riesgo sin romper el contrato actual.
+- Decision final: considerar resuelta la mutabilidad directa del snapshot como base inicial; revisar con C si necesita DTOs mas concretos.
+
+### Entrada 29 - Cierre de reglas abiertas de la base actual
+
+- Fecha: 21/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: fijar por tests y documentacion las reglas abiertas que pueden cerrarse antes de integrar con Track C.
+- Prompt o peticion: "Decidir y fijar reglas abiertas: objetos bloquean movimiento, puertas se abren desde celda adyacente, llaves basta tenerlas en inventario, inventario sin limite, ataque solo adyacente, enemigos no pisan objetos ni puertas."
+- Contexto proporcionado: varias reglas ya estaban implementadas en codigo, pero algunas seguian descritas como provisionales o pendientes en la documentacion.
+- Resultado obtenido: se dejaron como decisiones cerradas de la base actual: los objetos bloquean movimiento y se recogen adyacentes; las puertas se abren desde celda adyacente; las llaves solo deben estar en inventario; inicialmente se dejo inventario sin limite; el ataque es adyacente; los enemigos no pisan objetos ni puertas.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: se anadieron tests JUnit que fijan objetos bloqueando BFS, interaccion adyacente con puertas/items, ataque solo adyacente y bloqueo de movimiento enemigo sobre objetos/puertas. La regla de inventario se ajusto despues en la Entrada 30.
+- Critica y riesgos: si el profesor o el grupo cambia alguna de estas reglas, habra que actualizar codigo, tests y memoria de forma coordinada.
+- Decision final: tratar estas reglas como contrato de Track B para la integracion inicial con Track C.
+
+### Entrada 30 - Limite de inventario
+
+- Fecha: 21/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: cambiar la regla de inventario para que tenga capacidad maxima.
+- Prompt o peticion: "el inventario tiene que tener limite"
+- Contexto proporcionado: existia `InventoryFullException`, pero el inventario estaba documentado y probado como ilimitado.
+- Resultado obtenido: se fijo `Player.MAX_INVENTORY_SIZE = 10`; `Player.addItem()` lanza `InventoryFullException` si se supera el limite; el constructor rechaza inventarios iniciales con mas de 10 items; `IGameState` expone `getMaxInventorySize()` e `isInventoryFull()` para la UI; los JSON de ejemplo incluyen `inventarioMaximo`.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: se actualizaron tests JUnit para comprobar limite de inventario y excepcion.
+- Critica y riesgos: si el enunciado exige otra capacidad concreta, solo hay que cambiar la constante `Player.MAX_INVENTORY_SIZE` y los ejemplos JSON.
+- Decision final: inventario limitado a 10 items como contrato de Track B.
+
+### Entrada 31 - Movimiento enemigo con BFS
+
+- Fecha: 21/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: sustituir el movimiento heuristico de enemigos por BFS antes de integrar con Track C.
+- Prompt o peticion: "Movimiento enemigo con BFS o dejarlo oficialmente heurístico. Si el enunciado valora pathfinding, podemos cambiar enemigos a BFS antes de integrar."
+- Contexto proporcionado: `Enemy.moveOneStepToward()` usaba una heuristica codiciosa Manhattan y ya existian estructuras propias de cola y BFS de matriz.
+- Resultado obtenido: `Enemy.moveOneStepToward()` ahora usa BFS con `MyLinkedQueue` para encontrar la ruta mas corta hasta una celda adyacente al jugador y mover un paso por turno. No pisa objetos, puertas, enemigos ni la celda del jugador.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: se actualizo el test de movimiento enemigo para comprobar que rodea obstaculos con BFS y conserva bloqueados items/puertas. JUnit pasa con 52 tests correctos.
+- Critica y riesgos: el metodo conserva semantica de un paso por turno (`moveOneStepToward`); si se quiere usar `speed` del enemigo para varios pasos, habra que ampliar la regla y los tests.
+- Decision final: movimiento enemigo con BFS como contrato de Track B.
+
+### Entrada 32 - Grafo de habitaciones dirigido/no dirigido
+
+- Fecha: 21/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: resolver antes de integrar con Track C si el grafo de habitaciones debe duplicar conexiones o soportar aristas no dirigidas.
+- Prompt o peticion: "Grafo dirigido/no dirigido. Podemos añadir un helper tipo addUndirectedEdge() o documentar que el JSON debe declarar ambas direcciones. Mejor resolverlo antes de C."
+- Contexto proporcionado: `MyGraph.addEdge` era dirigido y `GameEngineImpl.newGame()` insertaba manualmente las dos direcciones entre entrada y sala final.
+- Resultado obtenido: se mantuvo `addEdge` como arista dirigida y se anadieron `addUndirectedEdge(first, second)` y `addUndirectedEdge(first, second, weight)` a `IGraph`/`MyGraph`. `GameEngineImpl.newGame()` usa ahora `addUndirectedEdge`. El JSON de ejemplo declara una unica conexion con `dirigida: false`.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: se anadio un test JUnit para comprobar que `addUndirectedEdge` permite distancia y vecinos en ambos sentidos.
+- Critica y riesgos: Track C debe respetar la propiedad `dirigida`; si no aparece, se recomienda tratar conexiones de habitaciones como no dirigidas por defecto.
+- Decision final: el mapa de habitaciones usa conexiones no dirigidas salvo que el JSON final indique explicitamente lo contrario.
+
 ## Metodologia provisional extraida
 
 1. Leer primero la documentacion oficial del proyecto.

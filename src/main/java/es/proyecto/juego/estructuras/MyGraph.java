@@ -36,6 +36,17 @@ public class MyGraph<T> implements IGraph<T> {
     }
 
     @Override
+    public void addUndirectedEdge(T first, T second) {
+        addUndirectedEdge(first, second, 1);
+    }
+
+    @Override
+    public void addUndirectedEdge(T first, T second, int weight) {
+        addEdge(first, second, weight);
+        addEdge(second, first, weight);
+    }
+
+    @Override
     public IList<T> getNeighbors(T node) {
         GraphNode<T> graphNode = findExistingNode(node);
         MyLinkedList<T> neighbors = new MyLinkedList<>();

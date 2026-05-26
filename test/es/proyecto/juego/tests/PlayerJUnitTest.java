@@ -2,6 +2,7 @@ package es.proyecto.juego.tests;
 
 import es.proyecto.juego.estructuras.MyLinkedList;
 import es.proyecto.juego.logica.entidades.Player;
+import es.proyecto.juego.logica.excepciones.InventoryFullException;
 import es.proyecto.juego.logica.items.Armor;
 import es.proyecto.juego.logica.items.Item;
 import es.proyecto.juego.logica.items.Key;
@@ -73,6 +74,24 @@ public class PlayerJUnitTest {
     }
 
     @Test
+    void inventoryHasLimitInCurrentRules() {
+        Player player = createPlayer();
+
+        for (int i = 0; i < Player.MAX_INVENTORY_SIZE; i++) {
+            player.addItem(new Potion("Pocion " + i, 1));
+        }
+
+        assertEquals(Player.MAX_INVENTORY_SIZE, player.getInventory().size());
+        assertTrue(player.isInventoryFull());
+        assertThrows(InventoryFullException.class, new ExecutableBlock() {
+            @Override
+            public void execute() {
+                player.addItem(new Potion("Pocion extra", 1));
+            }
+        });
+    }
+
+    @Test
     void constructorRejectsInvalidValues() {
         assertThrows(IllegalArgumentException.class, new ExecutableBlock() {
             @Override
@@ -90,6 +109,16 @@ public class PlayerJUnitTest {
             @Override
             public void execute() {
                 new Player("Heroe", 100, 3, 10, 3, 0, 0, null);
+            }
+        });
+        assertThrows(InventoryFullException.class, new ExecutableBlock() {
+            @Override
+            public void execute() {
+                MyLinkedList<Item> inventory = new MyLinkedList<>();
+                for (int i = 0; i <= Player.MAX_INVENTORY_SIZE; i++) {
+                    inventory.add(new Potion("Pocion inicial " + i, 1));
+                }
+                new Player("Heroe", 100, 3, 10, 3, 0, 0, inventory);
             }
         });
     }

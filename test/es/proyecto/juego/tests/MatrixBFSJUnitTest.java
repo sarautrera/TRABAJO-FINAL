@@ -3,6 +3,7 @@ package es.proyecto.juego.tests;
 import es.proyecto.juego.estructuras.IList;
 import es.proyecto.juego.estructuras.MyLinkedList;
 import es.proyecto.juego.logica.entidades.Enemy;
+import es.proyecto.juego.logica.items.Potion;
 import es.proyecto.juego.logica.mundo.Cell;
 import es.proyecto.juego.logica.mundo.CellType;
 import es.proyecto.juego.logica.mundo.Room;
@@ -28,6 +29,17 @@ public class MatrixBFSJUnitTest {
         assertTrue(containsCell(reachable, 2, 0));
         assertFalse(containsCell(reachable, 1, 1));
         assertFalse(containsCell(reachable, 2, 2));
+    }
+
+    @Test
+    void itemCellsBlockMovementAndMustBeInteractedFromAdjacentCell() {
+        Room room = createRoom();
+        room.placeItem(0, 1, new Potion("Pocion", 10));
+
+        IList<int[]> reachable = MatrixBFS.reachableCells(room, 0, 0, 2);
+
+        assertFalse(containsCell(reachable, 0, 1));
+        assertTrue(containsCell(reachable, 1, 0));
     }
 
     @Test

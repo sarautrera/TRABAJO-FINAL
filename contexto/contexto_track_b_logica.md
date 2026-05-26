@@ -102,11 +102,21 @@ public interface IGameState {
     int getPlayerSpeed();
     int getPlayerAttack();
     int getPlayerDefense();
+    String getEquippedWeaponName();
+    String getEquippedArmorName();
     IList<Item> getInventory();
+    int getMaxInventorySize();
+    boolean isInventoryFull();
 
+    int getCurrentRoomId();
+    String getCurrentRoomName();
+    int getCurrentRoomRows();
+    int getCurrentRoomCols();
     Room getCurrentRoom();
     int getTurnCount();
     int getTurnsLeft();
+    boolean canPlayerMove();
+    boolean canPlayerAct();
 
     int getMinRoomsToExit();
     int getDistanceToNearestDoor();
@@ -121,6 +131,8 @@ public interface IGameState {
 
 La UI no debe modificar directamente el estado devuelto. Las mutaciones deben pasar por `IGameEngine`.
 
+Estado real actual: `IGameState` ya expone tambien datos directos para UI (`currentRoomId`, nombre y dimensiones de sala, equipo y acciones disponibles). `GameStateSnapshot` devuelve copias defensivas de inventario, sala actual, ruta y log para que la UI no pueda mutar directamente el estado interno del motor.
+
 ## Modelo de dominio minimo
 
 ### `Player`
@@ -132,6 +144,7 @@ Atributos esperados:
 - `baseAttack`, `baseDefense`.
 - `row`, `col`.
 - `IList<Item> inventory`.
+- Limite de inventario: 10 items (`Player.MAX_INVENTORY_SIZE`).
 - Arma equipada.
 - Armadura/defensa equipada, si se implementa.
 
@@ -143,6 +156,7 @@ Metodos clave:
 - `heal(int amount)`: la vida nunca supera `maxHp`.
 - `isAlive()`.
 - Gestion de inventario y equipamiento.
+- `addItem(Item item)` lanza `InventoryFullException` si el inventario ya tiene 10 items.
 
 ### `Enemy`
 
@@ -158,7 +172,7 @@ Atributos esperados:
 
 Comportamiento:
 
-- Se mueve hacia el jugador usando BFS o una heuristica basada en celdas alcanzables.
+- Se mueve hacia el jugador usando BFS de matriz hasta una celda adyacente al jugador.
 - Ataca si el jugador esta en rango.
 - No es obligatorio que cambie de habitacion.
 
@@ -443,6 +457,15 @@ Punto de integracion: decidir si `GameEngineImpl.loadConfig/loadGame/saveGame` d
 
 Estado temporal de Track B: mientras no este integrada la persistencia de Track C, `GameEngineImpl` puede validar que un fichero JSON existe, iniciar una partida base con `newGame()` y guardar un snapshot minimo. Esta solucion es solo provisional y no sustituye el parseo/serializacion final de `levelConfig.json` y `gameSave.json`.
 
+Estado real actual de ejemplos JSON: existen `src/main/resources/levelConfig.example.json` y `src/main/resources/gameSave.example.json` coherentes con el escenario base de `newGame()`:
+
+- Habitacion 0 `Entrada`, matriz 6x7, puerta en `(0,3)` hacia sala 1, enemigo basico en `(3,2)` y pocion en `(1,5)`.
+- Habitacion 1 `Sala final`, matriz 5x5, salida exterior en `(4,2)`.
+- Jugador `Heroe` en habitacion 0, posicion `(5,3)`, vida 100, velocidad 3, ataque base 10 y defensa base 3.
+- Grafo con conexion no dirigida entre 0 y 1 (`addUndirectedEdge`).
+
+Estos ficheros son ejemplos de contrato para Track C; `loadConfig()` y `loadGame()` todavia no reconstruyen todo ese contenido.
+
 ## UML que afecta especialmente al Track B
 
 El proyecto exige:
@@ -462,9 +485,9 @@ Para Track B conviene preparar:
 
 ## Tests JUnit obligatorios para Track B
 
-Nota de planificacion: no es necesario crear toda la bateria de JUnit al inicio de Fase 0. Conviene crearla cuando el dominio y `GameEngineImpl` esten mas avanzados y las firmas se hayan estabilizado. Las pruebas manuales pueden servir durante desarrollo, pero la validacion final de clases no visuales debe hacerse con JUnit si se mantiene este requisito del enunciado.
+Nota de planificacion: no fue necesario crear toda la bateria de JUnit al inicio de Fase 0. Una vez estabilizados dominio y `GameEngineImpl`, se creo una bateria JUnit inicial para las clases no visuales principales. Las pruebas manuales quedan solo como apoyo temporal durante desarrollo.
 
-Estado temporal: se ha creado `src/test/java/es/proyecto/juego/tests/TestRunner.java` como bateria manual sin librerias externas para validar la base actual mientras no se incorpore JUnit. No sustituye los tests JUnit finales.
+Estado real actual: los tests JUnit estan en `test/es/proyecto/juego/tests`, con `test` como test source root. JUnit 5 esta disponible en `lib`. La bateria actual ejecuta 47 tests correctos por consola. `TestRunner` se conserva como apoyo, pero no sustituye la validacion final.
 
 ### `CombatSystem`
 
@@ -503,6 +526,7 @@ Estado temporal: se ha creado `src/test/java/es/proyecto/juego/tests/TestRunner.
 - `openDoor` con salida exterior activa victoria.
 - Al terminar el ultimo turno, `isGameOver()` es true.
 - Si la vida del jugador llega a 0, `isGameOver()` es true.
+- `IGameState` expone datos necesarios para UI: posicion, vida, atributos, equipo, sala actual, dimensiones, turnos, acciones disponibles, ruta/logs y estado final.
 
 ## Hoja de ruta recomendada para Track B
 
@@ -538,15 +562,20 @@ Estado temporal: se ha creado `src/test/java/es/proyecto/juego/tests/TestRunner.
 
 ## Decisiones pendientes que conviene cerrar pronto
 
-- Si una celda con objeto bloquea el movimiento o se puede pisar.
-- Si abrir puerta se hace desde celda adyacente, desde la propia celda de puerta, o ambas.
-- Si la llave debe estar solo en inventario o ademas equipada.
-- Si hay limite de inventario.
-- Si se implementa armadura/escudo o solo armas, pociones y llaves.
-- Como se representaran rangos de armas.
-- Si los enemigos pueden moverse sobre objetos o puertas.
-- Como se resolvera persistencia: clases de C llamadas por B o B con DTOs propios.
-- Formato final de paquetes y nombres para que A, B y C compilen juntos.
+- Objetos y movimiento: decision cerrada para la base actual. Una celda con objeto bloquea el movimiento y el item se recoge desde una celda adyacente con `pickItem(row, col)`.
+- Apertura de puertas: decision cerrada para la base actual. `openDoor(row, col)` exige que el jugador este adyacente a la puerta; al abrir puerta normal cambia de habitacion inmediatamente y termina el turno. Pendiente resolver puertas reciprocas/coordenadas de entrada con el JSON final.
+- Llaves: decision cerrada para la base actual. Basta con tener la llave adecuada en inventario para abrir una puerta bloqueada; no hace falta equiparla.
+- Inventario: decision cerrada para la base actual. Hay limite de 10 items (`Player.MAX_INVENTORY_SIZE`). Al intentar superar el limite se lanza `InventoryFullException`.
+- Equipo: se implementan `Weapon`, `Potion`, `Key` y `Armor`. Pendiente confirmar si hara falta `Shield` u otros objetos especiales.
+- Rango de ataque: decision cerrada para la base actual. El ataque solo permite enemigos adyacentes. Pendiente extender solo si se anaden armas a distancia o rangos variables.
+- Movimiento enemigo: decision cerrada para la base actual. El enemigo usa BFS para elegir el primer paso de la ruta mas corta hacia una celda adyacente al jugador.
+- Enemigos sobre objetos/puertas: decision cerrada para la base actual. `Room.placeEnemy` solo permite celda vacia y el movimiento enemigo no pisa objetos ni puertas.
+- Grafo de habitaciones: decision cerrada para la base actual. `addEdge` se mantiene como arista dirigida, pero `IGraph` y `MyGraph` incluyen `addUndirectedEdge`. El JSON de habitaciones puede declarar una conexion no dirigida una sola vez con `dirigida: false`.
+- Persistencia: pendiente resolver con Track C si `GameEngineImpl` parsea directamente ficheros, delega en clases de C o recibe DTOs/objetos ya parseados.
+- Formato final de paquetes y nombres: pendiente confirmar con A, B y C para que todo compile junto.
+- Mutabilidad de estado para UI: resuelto como base inicial. `IGameState` devuelve copias defensivas de inventario, sala actual, ruta y log. Pendiente revisar con C si necesita DTOs mas especificos para evitar exponer clases de dominio.
+- `IList` e `Iterable`: actualmente `IList` no extiende `Iterable` para evitar dependencia de `Iterator`. Pendiente confirmar si el enunciado/profesor exige esa firma exacta.
+- Coverage: pendiente ejecutar Run with Coverage en IntelliJ con `test` marcado como test source y registrar el porcentaje final en la memoria.
 
 ## Criterios de calidad para no perder puntos
 

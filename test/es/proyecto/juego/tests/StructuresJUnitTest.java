@@ -104,6 +104,19 @@ public class StructuresJUnitTest {
         assertEquals(1, path.get(2).intValue());
     }
 
+    @Test
+    void graphSupportsUndirectedEdges() {
+        MyGraph<Integer> graph = new MyGraph<Integer>();
+
+        graph.addUndirectedEdge(0, 1, 4);
+
+        assertEquals(2, graph.nodeCount());
+        assertEquals(4, graph.shortestDistance(0, 1));
+        assertEquals(4, graph.shortestDistance(1, 0));
+        assertTrue(graph.getNeighbors(0).contains(1));
+        assertTrue(graph.getNeighbors(1).contains(0));
+    }
+
     private interface ExecutableBlock extends org.junit.jupiter.api.function.Executable {
     }
 }

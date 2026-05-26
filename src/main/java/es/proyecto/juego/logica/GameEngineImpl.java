@@ -9,8 +9,12 @@ import es.proyecto.juego.logica.excepciones.DoorLockedException;
 import es.proyecto.juego.logica.excepciones.GameAlreadyOverException;
 import es.proyecto.juego.logica.excepciones.InvalidAttackException;
 import es.proyecto.juego.logica.excepciones.InvalidMoveException;
+import es.proyecto.juego.logica.excepciones.InventoryFullException;
+import es.proyecto.juego.logica.items.Armor;
 import es.proyecto.juego.logica.items.Item;
+import es.proyecto.juego.logica.items.Key;
 import es.proyecto.juego.logica.items.Potion;
+import es.proyecto.juego.logica.items.Weapon;
 import es.proyecto.juego.logica.mundo.Cell;
 import es.proyecto.juego.logica.mundo.CellType;
 import es.proyecto.juego.logica.mundo.Room;
@@ -60,8 +64,7 @@ public class GameEngineImpl implements IGameEngine {
         rooms.add(entrance);
         rooms.add(exitRoom);
 
-        roomGraph.addEdge(START_ROOM_ID, EXIT_ROOM_ID);
-        roomGraph.addEdge(EXIT_ROOM_ID, START_ROOM_ID);
+        roomGraph.addUndirectedEdge(START_ROOM_ID, EXIT_ROOM_ID);
 
         currentRoom = entrance;
         currentRoom.setVisited(true);
@@ -183,6 +186,9 @@ public class GameEngineImpl implements IGameEngine {
         }
         if (!currentRoom.getCell(row, col).hasItem()) {
             throw new InvalidMoveException("No hay item en la celda indicada");
+        }
+        if (player.isInventoryFull()) {
+            throw new InventoryFullException("El inventario esta lleno");
         }
 
         Item item = currentRoom.takeItem(row, col);
@@ -530,7 +536,17 @@ public class GameEngineImpl implements IGameEngine {
 
         @Override
         public IList<Item> getInventory() {
-            return player.getInventory();
+            return copyInventory(player.getInventory());
+        }
+
+        @Override
+        public int getMaxInventorySize() {
+            return player.getMaxInventorySize();
+        }
+
+        @Override
+        public boolean isInventoryFull() {
+            return player.isInventoryFull();
         }
 
         @Override
@@ -555,7 +571,7 @@ public class GameEngineImpl implements IGameEngine {
 
         @Override
         public Room getCurrentRoom() {
-            return currentRoom;
+            return copyRoom(currentRoom);
         }
 
         @Override
@@ -590,12 +606,12 @@ public class GameEngineImpl implements IGameEngine {
 
         @Override
         public IList<Integer> getPathToExit() {
-            return pathFinder.getPathToExit(currentRoomId, exitRoomId);
+            return copyIntegerList(pathFinder.getPathToExit(currentRoomId, exitRoomId));
         }
 
         @Override
         public IList<String> getEventLog() {
-            return eventLog.getEvents();
+            return copyStringList(eventLog.getEvents());
         }
 
         @Override
@@ -611,6 +627,97 @@ public class GameEngineImpl implements IGameEngine {
         @Override
         public boolean isVictory() {
             return victory;
+        }
+
+        private static IList<Item> copyInventory(IList<Item> source) {
+            MyLinkedList<Item> copy = new MyLinkedList<>();
+            for (int i = 0; i < source.size(); i++) {
+                copy.add(copyItem(source.get(i)));
+            }
+            return copy;
+        }
+
+        private static IList<Integer> copyIntegerList(IList<Integer> source) {
+            MyLinkedList<Integer> copy = new MyLinkedList<>();
+            for (int i = 0; i < source.size(); i++) {
+                copy.add(source.get(i));
+            }
+            return copy;
+        }
+
+        private static IList<String> copyStringList(IList<String> source) {
+            MyLinkedList<String> copy = new MyLinkedList<>();
+            for (int i = 0; i < source.size(); i++) {
+                copy.add(source.get(i));
+            }
+            return copy;
+        }
+
+        private static Room copyRoom(Room source) {
+            Room copy = new Room(source.getId(), source.getName(), source.getRows(), source.getCols(),
+                    new MyLinkedList<Enemy>());
+            copy.setVisited(source.isVisited());
+            for (int row = 0; row < source.getRows(); row++) {
+                for (int col = 0; col < source.getCols(); col++) {
+                    Cell cellCopy = copyCell(source.getCell(row, col));
+                    copy.setCell(row, col, cellCopy);
+                    if (cellCopy.hasEnemy()) {
+                        copy.getEnemies().add(cellCopy.getEnemy());
+                    }
+                }
+            }
+            return copy;
+        }
+
+        private static Cell copyCell(Cell source) {
+            Cell copy = new Cell(CellType.EMPTY);
+            if (source.getType() == CellType.ITEM) {
+                copy.setItem(copyItem(source.getItem()));
+            } else if (source.getType() == CellType.ENEMY) {
+                copy.setEnemy(copyEnemy(source.getEnemy()));
+            } else if (source.getType() == CellType.DOOR) {
+                copy.configureDoor(source.getDoorTargetId(), source.isDoorLocked(), source.isExteriorExit());
+                copy.setDoorOpen(source.isDoorOpen());
+            } else if (source.getType() == CellType.TRAP) {
+                copy.configureTrap(source.getTrapDamage());
+            } else {
+                copy.setType(source.getType());
+            }
+            return copy;
+        }
+
+        private static Enemy copyEnemy(Enemy source) {
+            if (source == null) {
+                return null;
+            }
+            Enemy copy = new Enemy(source.getName(), source.getMaxHp(), source.getSpeed(),
+                    source.getEffectiveAttack(), source.getEffectiveDefense(), source.getRow(), source.getCol());
+            copy.takeDamage(source.getMaxHp() - source.getHp());
+            return copy;
+        }
+
+        private static Item copyItem(Item source) {
+            if (source instanceof Weapon) {
+                Weapon weapon = (Weapon) source;
+                return new Weapon(weapon.getName(), weapon.getAttackBonus());
+            }
+            if (source instanceof Armor) {
+                Armor armor = (Armor) source;
+                return new Armor(armor.getName(), armor.getDefenseBonus());
+            }
+            if (source instanceof Potion) {
+                Potion potion = (Potion) source;
+                Potion copy = new Potion(potion.getName(), potion.getHpRestore());
+                while (copy.getUsesLeft() > source.getUsesLeft()) {
+                    copy.consumeUse();
+                }
+                return copy;
+            }
+            if (source instanceof Key) {
+                Key key = (Key) source;
+                return new Key(key.getName(), key.getTargetDoorId());
+            }
+            throw new IllegalStateException("Tipo de item no soportado en snapshot: " + source.getClass().getName());
         }
     }
 }

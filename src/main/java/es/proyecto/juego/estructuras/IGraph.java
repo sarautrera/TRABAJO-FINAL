@@ -7,6 +7,10 @@ public interface IGraph<T> {
 
     void addEdge(T from, T to, int weight);
 
+    void addUndirectedEdge(T first, T second);
+
+    void addUndirectedEdge(T first, T second, int weight);
+
     IList<T> getNeighbors(T node);
 
     IList<T> bfs(T start);

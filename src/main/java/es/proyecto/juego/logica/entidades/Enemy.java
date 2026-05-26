@@ -1,10 +1,18 @@
 package es.proyecto.juego.logica.entidades;
 
+import es.proyecto.juego.estructuras.MyLinkedQueue;
 import es.proyecto.juego.logica.mundo.CellType;
 import es.proyecto.juego.logica.mundo.Room;
 import es.proyecto.juego.logica.sistemas.CombatSystem;
 
 public class Enemy {
+    private static final int[][] DIRECTIONS = {
+            {-1, 0},
+            {1, 0},
+            {0, -1},
+            {0, 1}
+    };
+
     private final String name;
     private int hp;
     private final int maxHp;
@@ -99,66 +107,81 @@ public class Enemy {
             return false;
         }
 
-        int bestRow = row;
-        int bestCol = col;
-        int bestDistance = distanceTo(player.getRow(), player.getCol(), row, col);
-
-        bestDistance = evaluateCandidate(room, player, row - 1, col, bestDistance);
-        if (lastCandidateImproved) {
-            bestRow = row - 1;
-            bestCol = col;
-        }
-        bestDistance = evaluateCandidate(room, player, row + 1, col, bestDistance);
-        if (lastCandidateImproved) {
-            bestRow = row + 1;
-            bestCol = col;
-        }
-        bestDistance = evaluateCandidate(room, player, row, col - 1, bestDistance);
-        if (lastCandidateImproved) {
-            bestRow = row;
-            bestCol = col - 1;
-        }
-        evaluateCandidate(room, player, row, col + 1, bestDistance);
-        if (lastCandidateImproved) {
-            bestRow = row;
-            bestCol = col + 1;
+        int[] nextStep = findNextStepWithBfs(player, room);
+        if (nextStep == null) {
+            return false;
         }
 
-        if (bestRow == row && bestCol == col) {
+        int bestRow = nextStep[0];
+        int bestCol = nextStep[1];
+
+        if ((bestRow == row && bestCol == col) || (bestRow == player.getRow() && bestCol == player.getCol())) {
             return false;
         }
         moveTo(room, bestRow, bestCol);
         return true;
     }
 
-    private boolean lastCandidateImproved;
+    private int[] findNextStepWithBfs(Player player, Room room) {
+        boolean[][] visited = new boolean[room.getRows()][room.getCols()];
+        MyLinkedQueue<SearchNode> pending = new MyLinkedQueue<>();
 
-    private int evaluateCandidate(Room room, Player player, int candidateRow, int candidateCol, int bestDistance) {
-        lastCandidateImproved = false;
-        if (!room.isInside(candidateRow, candidateCol)) {
-            return bestDistance;
+        visited[row][col] = true;
+        pending.enqueue(new SearchNode(row, col, row, col, 0));
+
+        while (!pending.isEmpty()) {
+            SearchNode current = pending.dequeue();
+            if (current.distance > 0 && isAdjacentToPlayer(current.row, current.col, player)) {
+                return new int[]{current.firstRow, current.firstCol, current.distance};
+            }
+
+            for (int i = 0; i < DIRECTIONS.length; i++) {
+                int nextRow = current.row + DIRECTIONS[i][0];
+                int nextCol = current.col + DIRECTIONS[i][1];
+                if (canEnemyVisit(room, player, visited, nextRow, nextCol)) {
+                    visited[nextRow][nextCol] = true;
+                    int firstRow = current.distance == 0 ? nextRow : current.firstRow;
+                    int firstCol = current.distance == 0 ? nextCol : current.firstCol;
+                    pending.enqueue(new SearchNode(nextRow, nextCol, firstRow, firstCol, current.distance + 1));
+                }
+            }
         }
-        if (candidateRow == player.getRow() && candidateCol == player.getCol()) {
-            return bestDistance;
-        }
-        if (room.getCell(candidateRow, candidateCol).getType() != CellType.EMPTY) {
-            return bestDistance;
-        }
-        int candidateDistance = distanceTo(player.getRow(), player.getCol(), candidateRow, candidateCol);
-        if (candidateDistance < bestDistance) {
-            lastCandidateImproved = true;
-            return candidateDistance;
-        }
-        return bestDistance;
+        return null;
     }
 
-    private int distanceTo(int targetRow, int targetCol, int fromRow, int fromCol) {
-        return Math.abs(targetRow - fromRow) + Math.abs(targetCol - fromCol);
+    private boolean canEnemyVisit(Room room, Player player, boolean[][] visited, int targetRow, int targetCol) {
+        if (!room.isInside(targetRow, targetCol) || visited[targetRow][targetCol]) {
+            return false;
+        }
+        if (targetRow == player.getRow() && targetCol == player.getCol()) {
+            return false;
+        }
+        return room.getCell(targetRow, targetCol).getType() == CellType.EMPTY;
+    }
+
+    private boolean isAdjacentToPlayer(int candidateRow, int candidateCol, Player player) {
+        return Math.abs(candidateRow - player.getRow()) + Math.abs(candidateCol - player.getCol()) == 1;
     }
 
     private void moveTo(Room room, int targetRow, int targetCol) {
         room.getCell(row, col).clearOccupant();
         setPosition(targetRow, targetCol);
         room.getCell(targetRow, targetCol).setEnemy(this);
+    }
+
+    private static final class SearchNode {
+        private final int row;
+        private final int col;
+        private final int firstRow;
+        private final int firstCol;
+        private final int distance;
+
+        private SearchNode(int row, int col, int firstRow, int firstCol, int distance) {
+            this.row = row;
+            this.col = col;
+            this.firstRow = firstRow;
+            this.firstCol = firstCol;
+            this.distance = distance;
+        }
     }
 }

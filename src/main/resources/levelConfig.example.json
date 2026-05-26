@@ -70,11 +70,8 @@
   "conexiones": [
     {
       "de": 0,
-      "a": 1
-    },
-    {
-      "de": 1,
-      "a": 0
+      "a": 1,
+      "dirigida": false
     }
   ],
   "jugadorInicial": {
@@ -87,6 +84,7 @@
     "velocidad": 3,
     "ataqueBase": 10,
     "defensaBase": 3,
+    "inventarioMaximo": 10,
     "inventario": [],
     "armaEquipada": null,
     "armaduraEquipada": null

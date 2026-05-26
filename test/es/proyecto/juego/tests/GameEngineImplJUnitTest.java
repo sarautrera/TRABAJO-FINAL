@@ -2,8 +2,13 @@ package es.proyecto.juego.tests;
 
 import es.proyecto.juego.logica.GameEngineImpl;
 import es.proyecto.juego.logica.IGameState;
+import es.proyecto.juego.logica.entidades.Player;
 import es.proyecto.juego.logica.excepciones.GameAlreadyOverException;
 import es.proyecto.juego.logica.excepciones.InvalidMoveException;
+import es.proyecto.juego.logica.items.Potion;
+import es.proyecto.juego.logica.mundo.Cell;
+import es.proyecto.juego.logica.mundo.CellType;
+import es.proyecto.juego.logica.mundo.Room;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -31,6 +36,8 @@ public class GameEngineImplJUnitTest {
         assertEquals(3, state.getPlayerDefense());
         assertEquals("", state.getEquippedWeaponName());
         assertEquals("", state.getEquippedArmorName());
+        assertEquals(Player.MAX_INVENTORY_SIZE, state.getMaxInventorySize());
+        assertFalse(state.isInventoryFull());
         assertEquals(0, state.getCurrentRoomId());
         assertEquals("Entrada", state.getCurrentRoomName());
         assertEquals(6, state.getCurrentRoomRows());
@@ -65,6 +72,30 @@ public class GameEngineImplJUnitTest {
     }
 
     @Test
+    void rulesRequireAdjacentDoorItemAndAttackTargets() {
+        GameEngineImpl engine = new GameEngineImpl();
+        engine.newGame();
+
+        assertThrows(InvalidMoveException.class, new ExecutableBlock() {
+            @Override
+            public void execute() {
+                engine.openDoor(0, 3);
+            }
+        });
+        assertThrows(InvalidMoveException.class, new ExecutableBlock() {
+            @Override
+            public void execute() {
+                engine.pickItem(1, 5);
+            }
+        });
+        assertEquals(0, engine.getAttackTargets().size());
+
+        engine.movePlayer(4, 2);
+
+        assertEquals(1, engine.getAttackTargets().size());
+    }
+
+    @Test
     void pickItemAddsItemToInventoryAndUseItemConsumesAction() {
         GameEngineImpl engine = new GameEngineImpl();
         engine.newGame();
@@ -93,6 +124,30 @@ public class GameEngineImplJUnitTest {
         assertEquals(1, engine.getState().getTurnCount());
         assertEquals(49, engine.getState().getTurnsLeft());
         assertTrue(engine.getState().getEventLog().size() >= 2);
+    }
+
+    @Test
+    void stateReturnsDefensiveCopiesForMutableData() {
+        GameEngineImpl engine = new GameEngineImpl();
+        engine.newGame();
+
+        engine.movePlayer(2, 3);
+        engine.endTurn();
+        engine.movePlayer(2, 5);
+        engine.pickItem(1, 5);
+
+        IGameState state = engine.getState();
+        state.getInventory().add(new Potion("Pocion falsa", 1));
+        state.getEventLog().add("evento falso");
+        Room roomCopy = state.getCurrentRoom();
+        roomCopy.setCell(0, 0, new Cell(CellType.WALL));
+        roomCopy.getEnemies().remove(0);
+
+        IGameState freshState = engine.getState();
+        assertEquals(1, freshState.getInventory().size());
+        assertFalse(freshState.getEventLog().contains("evento falso"));
+        assertEquals(CellType.EMPTY, freshState.getCurrentRoom().getCell(0, 0).getType());
+        assertEquals(1, freshState.getCurrentRoom().getEnemies().size());
     }
 
     @Test

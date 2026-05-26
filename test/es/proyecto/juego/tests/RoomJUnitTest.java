@@ -2,6 +2,8 @@ package es.proyecto.juego.tests;
 
 import es.proyecto.juego.estructuras.MyLinkedList;
 import es.proyecto.juego.logica.entidades.Enemy;
+import es.proyecto.juego.logica.entidades.Player;
+import es.proyecto.juego.logica.items.Item;
 import es.proyecto.juego.logica.items.Potion;
 import es.proyecto.juego.logica.mundo.Cell;
 import es.proyecto.juego.logica.mundo.CellType;
@@ -85,6 +87,24 @@ public class RoomJUnitTest {
         assertFalse(cell.hasItem());
         assertEquals(CellType.TRAP, cell.getType());
         assertEquals(5, cell.getTrapDamage());
+    }
+
+    @Test
+    void enemyUsesBfsAndDoesNotMoveOverItemsOrDoors() {
+        Room room = new Room(2, "Sala grande", 4, 4, new MyLinkedList<Enemy>());
+        Enemy enemy = new Enemy("Enemigo", 10, 1, 3, 1, 1, 1);
+        Player player = new Player("Heroe", 100, 3, 10, 3, 3, 3, new MyLinkedList<Item>());
+        room.placeEnemy(enemy);
+        room.placeItem(1, 2, new Potion("Pocion", 10));
+        room.configureDoor(2, 1, 2, false, false);
+
+        assertTrue(enemy.moveOneStepToward(player, room));
+        assertEquals(0, enemy.getRow());
+        assertEquals(1, enemy.getCol());
+        assertSame(enemy, room.getEnemyAt(0, 1));
+        assertTrue(room.getCell(1, 2).hasItem());
+        assertTrue(room.getCell(2, 1).isDoor());
+        assertNull(room.getEnemyAt(1, 1));
     }
 
     private Room createRoom() {

@@ -17,6 +17,7 @@
     "defensaBase": 3,
     "ataqueEfectivo": 10,
     "defensaEfectiva": 3,
+    "inventarioMaximo": 10,
     "inventario": [],
     "armaEquipada": null,
     "armaduraEquipada": null

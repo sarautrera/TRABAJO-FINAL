@@ -38,16 +38,4 @@ public class MockGameEngine implements IGameEngine {
         alcanzables.add(new int[]{playerRow, playerCol - 1}); // Celda izquierda
         return alcanzables;
     }
-
-    // --- Métodos obligatorios de la interfaz IGameEngine ---
-    @Override public void loadConfig(String jsonPath) {}
-    @Override public void newGame() {}
-    @Override public void loadGame(String jsonPath) {}
-    @Override public void saveGame(String jsonPath) {}
-    @Override public boolean attack(int r, int c) { return true; }
-    @Override public boolean useItem(int index) { return true; }
-    @Override public boolean pickItem(int r, int c) { return true; }
-    @Override public boolean openDoor(int r, int c) { return true; }
-    @Override public void endTurn() {}
-    @Override public IList<int[]> getAttackTargets() { return null; }
 }

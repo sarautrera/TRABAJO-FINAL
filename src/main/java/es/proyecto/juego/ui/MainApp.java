@@ -24,10 +24,9 @@ public class MainApp extends Application {
 
         // =====================================================================
         // LA PRUEBA DEL ÁCIDO: INTEGRACIÓN FINAL
-        // Descomenta la opción que necesites probar.
         // =====================================================================
         this.engine = new MockGameEngine();       // FASE DE DESARROLLO (UI aislada)
-        // this.engine = new GameEngineImpl();     // FASE DE ENTREGA (Sustitución final)
+        this.engine = new GameEngineImpl();     // FASE DE ENTREGA (Sustitución final)
         // =====================================================================
 
         // Inicializar el controlador base pasando la abstracción del motor

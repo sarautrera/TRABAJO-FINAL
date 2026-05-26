@@ -1,0 +1,12 @@
+1. El Diario sobre el Uso Ético de la IA (¡Obligatorio!)
+En tu resumen de los requisitos mencionaste un punto crítico que no es código: "se exige... un diario sobre el uso ético de la inteligencia artificial".
+
+Dado que me has utilizado para estructurar tu trabajo, debes redactar un breve documento de texto (ej. diario_ia.txt o .pdf) reconociendo esto. Para que sea ético y válido, te sugiero esta estructura:
+
+Fase de Diseño: "Utilicé IA para comprender el patrón MVC aplicado a JavaFX y estructurar la jerarquía de mis paquetes".
+
+Generación de Código: "Generé esqueletos de código rutinario (GridPanes, VBox, Alerts) y la configuración de Gson con ayuda de IA, adaptando posteriormente las llamadas a las interfaces IGameEngine e IGameState acordadas por mi grupo".
+
+Testing: "Me apoyé en IA para diseñar los casos límite de mis pruebas JUnit (ficheros corruptos, movimientos fuera de rango)".
+
+Nota: Sé honesto; los profesores valoran más a un ingeniero que sabe usar herramientas de forma responsable para cumplir un plazo ajustado, que a alguien que oculta su uso.

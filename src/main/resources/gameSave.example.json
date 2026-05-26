@@ -1,0 +1,80 @@
+{
+  "version": "temporal-track-b",
+  "timestampMillis": 1779386400000,
+  "turnoActual": 0,
+  "turnosRestantes": 50,
+  "gameOver": false,
+  "victory": false,
+  "jugador": {
+    "nombre": "Heroe",
+    "vidaActual": 100,
+    "vidaMaxima": 100,
+    "habitacionActual": 0,
+    "fila": 5,
+    "columna": 3,
+    "velocidad": 3,
+    "ataqueBase": 10,
+    "defensaBase": 3,
+    "ataqueEfectivo": 10,
+    "defensaEfectiva": 3,
+    "inventarioMaximo": 10,
+    "inventario": [],
+    "armaEquipada": null,
+    "armaduraEquipada": null
+  },
+  "estadoHabitaciones": [
+    {
+      "id": 0,
+      "nombre": "Entrada",
+      "visitada": true,
+      "enemigos": [
+        {
+          "nombre": "Enemigo basico",
+          "fila": 3,
+          "columna": 2,
+          "vidaActual": 20,
+          "derrotado": false
+        }
+      ],
+      "objetosPresentes": [
+        {
+          "fila": 1,
+          "columna": 5,
+          "tipo": "Potion",
+          "nombre": "Pocion"
+        }
+      ],
+      "puertas": [
+        {
+          "fila": 0,
+          "columna": 3,
+          "habitacionDestino": 1,
+          "bloqueada": false,
+          "salidaExterior": false,
+          "abierta": false
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "nombre": "Sala final",
+      "visitada": false,
+      "enemigos": [],
+      "objetosPresentes": [],
+      "puertas": [
+        {
+          "fila": 4,
+          "columna": 2,
+          "habitacionDestino": -1,
+          "bloqueada": false,
+          "salidaExterior": true,
+          "abierta": false
+        }
+      ]
+    }
+  ],
+  "eventLog": [
+    "Nueva partida iniciada en Entrada"
+  ],
+  "ultimoEvento": "Nueva partida iniciada en Entrada"
+}

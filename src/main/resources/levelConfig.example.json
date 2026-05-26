@@ -1,0 +1,92 @@
+{
+  "version": "1.0",
+  "titulo": "Dungeon de prueba Track B",
+  "turnosMaximos": 50,
+  "habitacionInicial": 0,
+  "habitacionSalida": 1,
+  "habitaciones": [
+    {
+      "id": 0,
+      "nombre": "Entrada",
+      "filas": 6,
+      "columnas": 7,
+      "visitadaInicialmente": true,
+      "celdas": [
+        {
+          "fila": 0,
+          "columna": 3,
+          "tipo": "DOOR",
+          "habitacionDestino": 1,
+          "bloqueada": false,
+          "salidaExterior": false,
+          "abierta": false
+        },
+        {
+          "fila": 3,
+          "columna": 2,
+          "tipo": "ENEMY",
+          "enemigo": {
+            "nombre": "Enemigo basico",
+            "vidaActual": 20,
+            "vidaMaxima": 20,
+            "velocidad": 2,
+            "ataque": 5,
+            "defensa": 2
+          }
+        },
+        {
+          "fila": 1,
+          "columna": 5,
+          "tipo": "ITEM",
+          "item": {
+            "tipo": "Potion",
+            "nombre": "Pocion",
+            "curacion": 20,
+            "consumible": true,
+            "usosRestantes": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "nombre": "Sala final",
+      "filas": 5,
+      "columnas": 5,
+      "visitadaInicialmente": false,
+      "celdas": [
+        {
+          "fila": 4,
+          "columna": 2,
+          "tipo": "DOOR",
+          "habitacionDestino": -1,
+          "bloqueada": false,
+          "salidaExterior": true,
+          "abierta": false
+        }
+      ]
+    }
+  ],
+  "conexiones": [
+    {
+      "de": 0,
+      "a": 1,
+      "dirigida": false
+    }
+  ],
+  "jugadorInicial": {
+    "nombre": "Heroe",
+    "habitacion": 0,
+    "fila": 5,
+    "columna": 3,
+    "vidaActual": 100,
+    "vidaMaxima": 100,
+    "velocidad": 3,
+    "ataqueBase": 10,
+    "defensaBase": 3,
+    "inventarioMaximo": 10,
+    "inventario": [],
+    "armaEquipada": null,
+    "armaduraEquipada": null
+  }
+}

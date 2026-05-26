@@ -1,30 +1,33 @@
-### IntelliJ IDEA ###
+docs/
+
+target/
 out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-.kotlin
-
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
 bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+*.class
+*.log
 
-### NetBeans ###
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+.apt_generated/
+.factorypath
+.springBeans
+.sts4-cache/
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
+.kotlin
 
-### VS Code ###
-.vscode/
-
-### Mac OS ###
 .DS_Store
+Thumbs.db
+desktop.ini
+
+*.tmp
+*.bak
+*.swp
+*~

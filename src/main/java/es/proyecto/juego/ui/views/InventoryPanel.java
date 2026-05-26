@@ -1,8 +1,11 @@
+/*
+ * Resumen del fichero: Construye y actualiza el panel de inventario del jugador.
+ */
 package es.proyecto.juego.ui.views;
 
-import es.proyecto.juego.logica.IGameState;
-import es.proyecto.juego.logica.Item;
 import es.proyecto.juego.estructuras.IList;
+import es.proyecto.juego.logica.IGameState;
+import es.proyecto.juego.logica.items.Item;
 import es.proyecto.juego.ui.GameController;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -11,57 +14,56 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
 
 public class InventoryPanel extends VBox {
-    private ListView<String> listView = new ListView<>();
-    private Button btnUsar = new Button("Usar / Equipar Elemento");
+    private final ListView<String> listView = new ListView<>();
+    private final Button btnUse = new Button("Usar / Equipar");
     private GameController controller;
 
     public InventoryPanel() {
-        this.setPadding(new Insets(10));
-        this.setSpacing(10);
-        this.setStyle("-fx-background-color: #ECF0F1; -fx-border-color: #BDC3C7;");
+        setPadding(new Insets(10));
+        setSpacing(10);
+        setStyle("-fx-background-color: #ECF0F1; -fx-border-color: #BDC3C7;");
 
-        Label title = new Label("INVENTARIO ACTIVO");
+        Label title = new Label("INVENTARIO");
         title.setStyle("-fx-font-weight: bold;");
         listView.setPrefHeight(150);
 
-        // Envía el índice seleccionado directamente al controlador en caliente
-        btnUsar.setOnAction(e -> {
-            int selectedIdx = listView.getSelectionModel().getSelectedIndex();
-            if (selectedIdx >= 0 && controller != null) {
-                controller.onUseItemClicked(selectedIdx);
+        btnUse.setOnAction(e -> {
+            int selectedIndex = listView.getSelectionModel().getSelectedIndex();
+            if (selectedIndex >= 0 && controller != null && !listView.getItems().isEmpty()) {
+                String selected = listView.getItems().get(selectedIndex);
+                if (!"Inventario vacio".equals(selected)) {
+                    controller.onUseItemClicked(selectedIndex);
+                }
             }
         });
 
-        this.getChildren().addAll(title, listView, btnUsar);
+        getChildren().addAll(title, listView, btnUse);
     }
 
     public void setController(GameController controller) {
         this.controller = controller;
     }
 
-    /**
-     * Actualiza la lista gráfica extrayendo los elementos del inventario real.
-     * Utiliza un bucle clásico indexado, respetando el contrato estricto sin java.util.
-     */
     public void update(IGameState state) {
         listView.getItems().clear();
-        if (state == null) return;
+        if (state == null) {
+            btnUse.setDisable(true);
+            return;
+        }
 
-        IList<Item> inventarioReal = state.getInventory();
+        IList<Item> inventory = state.getInventory();
+        if (inventory == null || inventory.isEmpty()) {
+            listView.getItems().add("Inventario vacio");
+            btnUse.setDisable(true);
+            return;
+        }
 
-        // Control de seguridad: Si el motor devuelve null o está vacío (como en nuestro Mock temporal)
-        if (inventarioReal == null || inventarioReal.isEmpty()) {
-            // Ponemos datos simulados para que la interfaz mantenga el tipo visual en el Mock
-            listView.getItems().add("[0] Poción de Vida (+20 HP) *Mock*");
-            listView.getItems().add("[1] Llave de Bronce (Mazmorra) *Mock*");
-        } else {
-            // Integración definitiva con el Track B: recorremos tu IList de forma indexada pura
-            for (int i = 0; i < inventarioReal.size(); i++) {
-                Item objeto = inventarioReal.get(i);
-                if (objeto != null) {
-                    listView.getItems().add("[" + i + "] " + objeto.getName());
-                }
+        for (int i = 0; i < inventory.size(); i++) {
+            Item item = inventory.get(i);
+            if (item != null) {
+                listView.getItems().add("[" + i + "] " + item.getName());
             }
         }
+        btnUse.setDisable(state.isGameOver() || !state.canPlayerAct());
     }
 }

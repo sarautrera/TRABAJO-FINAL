@@ -1,64 +1,98 @@
+/*
+ * Resumen del fichero: Lee y escribe el estado guardado de una partida en formato JSON.
+ */
 package es.proyecto.juego.persistencia;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParseException;
 import es.proyecto.juego.logica.IGameState;
+
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Reader;
 import java.io.Writer;
 
-// Clase responsable de guardar y cargar las partidas. Transforma los datos del juego en un archivo de texto (.json) y viceversa.
 public class GameSave {
 
-    // El objeto 'gson' es el motor de la librería de Google.
-    // Usamos 'setPrettyPrinting()' para que el archivo JSON esté ordenado con saltos de línea y tabulaciones, haciéndolo legible para un humano.
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-    //GUARDA: Toma el estado del juego y lo escribe en un archivo de disco.
-            //DATOS DEL MÉTODO:
-            //state: El estado actual de la partida (de donde sacamos la vida, posición, etc.)
-            //path: La ruta del archivo donde queremos guardar (ej: "partida.json")
-            //IOException: Si ocurre un error de lectura/escritura (ej: disco lleno o sin permisos)
     public void save(IGameState state, String path) throws IOException {
-        SaveData data = SaveData.fromState(state);  // Extrae los datos numéricos/básicos y los mete en el contenedor 'SaveData'
+        if (state == null) {
+            throw new IllegalArgumentException("El estado no puede ser null");
+        }
 
-        // Abre el archivo de texto en modo escritura ('FileWriter')
-        // El uso del 'try' asegura que el arcivo se cierre automáticamente al terminar.
-        try (Writer w = new FileWriter(path)) {
-            gson.toJson(data, w); // La librería Gson convierte el objeto 'data' a texto JSON y lo escribe en el archivo 'w'
+        SaveData data = SaveData.fromState(state);
+        try (Writer writer = new FileWriter(path)) {
+            writer.write("{\n");
+            writer.write("  \"version\": \"" + escape(data.version) + "\",\n");
+            writer.write("  \"turnoActual\": " + data.turnoActual + ",\n");
+            writer.write("  \"jugador\": {\n");
+            writer.write("    \"vidaActual\": " + data.vidaActual + ",\n");
+            writer.write("    \"habitacionActual\": " + data.habitacionActual + ",\n");
+            writer.write("    \"fila\": " + data.fila + ",\n");
+            writer.write("    \"col\": " + data.col + "\n");
+            writer.write("  }\n");
+            writer.write("}\n");
         }
     }
 
-    //CARGA: Lee un archivo del disco y reconstruye los datos de la partida.
-        //DATOS DEL MÉTODO:
-            //path: La ruta del archivo que queremos leer (ej: "partida.json")
-            //return: Un objeto SaveData con la información recuperada del archivo
-            //IOException Si el archivo no existe o si el formato está corrupto
     public SaveData load(String path) throws IOException {
-
-        // Abre el archivo de texto en modo lectura ('FileReader')
-        try (Reader r = new FileReader(path)) {
-            return gson.fromJson(r, SaveData.class);//Gson lee el texto del archivo 'r' y lo transforma en un objeto Java de la clase 'SaveData'
-        } catch (JsonParseException e) {
-            throw new IOException("Partida guardada corrupta: " + e.getMessage(), e);// Si el usuario modificó el archivo JSON a mano y cometió un error de sintaxis,captura el fallo de Gson y lanza una excepción
+        String json = readTextFile(path);
+        if (!json.trim().startsWith("{")) {
+            throw new IOException("Partida guardada corrupta: no es un objeto JSON");
         }
+
+        String playerJson = LevelConfig.Json.readObject(json, "jugador", false);
+        if (playerJson.length() == 0) {
+            playerJson = json;
+        }
+
+        SaveData data = new SaveData();
+        data.version = LevelConfig.Json.readString(json, "version", data.version);
+        data.turnoActual = LevelConfig.Json.readInt(json, "turnoActual", 0);
+        data.vidaActual = LevelConfig.Json.readInt(playerJson, "vidaActual", 100);
+        data.habitacionActual = LevelConfig.Json.readInt(playerJson, "habitacionActual",
+                LevelConfig.Json.readInt(playerJson, "habitacion", 0));
+        data.fila = LevelConfig.Json.readInt(playerJson, "fila", 0);
+        data.col = LevelConfig.Json.readInt(playerJson, "col",
+                LevelConfig.Json.readInt(playerJson, "columna", 0));
+        return data;
     }
-    // DTO (Data Transfer Object) para aislar la interfaz de la librería JSON, almacena las variables exactas que queremos guardar en el archivo de texto.
+
+    private String readTextFile(String path) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+            String line = reader.readLine();
+            while (line != null) {
+                builder.append(line).append('\n');
+                line = reader.readLine();
+            }
+        }
+        return builder.toString();
+    }
+
+    private static String escape(String text) {
+        StringBuilder escaped = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            char current = text.charAt(i);
+            if (current == '"' || current == '\\') {
+                escaped.append('\\');
+            }
+            escaped.append(current);
+        }
+        return escaped.toString();
+    }
+
     public static class SaveData {
-        // Datos que se escribirán directamente en el archivo JSON:
-        public String version = "1.0"; // Útil para cuando actualizes el juego y cambies las variables
+        public String version = "1.0";
         public int turnoActual;
         public int vidaActual;
-        public int fila, col; // Posición del jugador
+        public int habitacionActual;
+        public int fila;
+        public int col;
 
-        // Recibe el estado completo del juego y "copia" solo los datos necesarios en un 'SaveData'.
         public static SaveData fromState(IGameState state) {
             SaveData data = new SaveData();
             data.turnoActual = state.getTurnCount();
             data.vidaActual = state.getPlayerHp();
+            data.habitacionActual = state.getCurrentRoomId();
             data.fila = state.getPlayerRow();
             data.col = state.getPlayerCol();
             return data;

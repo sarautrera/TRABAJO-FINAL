@@ -1,16 +1,26 @@
+/*
+ * Resumen del fichero: Conecta los botones y celdas de la interfaz con las acciones del motor de juego.
+ */
 package es.proyecto.juego.ui;
 
+import es.proyecto.juego.estructuras.IList;
 import es.proyecto.juego.logica.IGameEngine;
 import es.proyecto.juego.logica.IGameState;
-import es.proyecto.juego.estructuras.IList;
-import es.proyecto.juego.ui.views.*;
+import es.proyecto.juego.logica.mundo.Cell;
+import es.proyecto.juego.logica.mundo.Room;
+import es.proyecto.juego.ui.views.ActionPanel;
+import es.proyecto.juego.ui.views.InventoryPanel;
+import es.proyecto.juego.ui.views.LogPanel;
+import es.proyecto.juego.ui.views.PlayerPanel;
+import es.proyecto.juego.ui.views.RoomView;
 import javafx.scene.control.Alert;
 import javafx.stage.FileChooser;
+
 import java.io.File;
 
 public class GameController {
-    private MainApp mainApp;
-    private IGameEngine engine;
+    private final MainApp mainApp;
+    private final IGameEngine engine;
 
     private RoomView roomView;
     private PlayerPanel playerPanel;
@@ -18,47 +28,43 @@ public class GameController {
     private ActionPanel actionPanel;
     private LogPanel logPanel;
 
-    // Constructor unificado que conecta el controlador con la aplicación principal y el motor
     public GameController(MainApp mainApp, IGameEngine engine) {
         this.mainApp = mainApp;
         this.engine = engine;
     }
 
-    public void setViews(RoomView rv, PlayerPanel pp, InventoryPanel ip, ActionPanel ap, LogPanel lp) {
-        this.roomView = rv;
-        this.playerPanel = pp;
-        this.inventoryPanel = ip;
-        this.actionPanel = ap;
-        this.logPanel = lp;
+    public void setViews(RoomView roomView, PlayerPanel playerPanel, InventoryPanel inventoryPanel,
+                         ActionPanel actionPanel, LogPanel logPanel) {
+        this.roomView = roomView;
+        this.playerPanel = playerPanel;
+        this.inventoryPanel = inventoryPanel;
+        this.actionPanel = actionPanel;
+        this.logPanel = logPanel;
     }
 
     public void startGame() {
-        engine.newGame();
         refreshAll();
     }
 
-    // Flujo correcto: Seleccionar mapa JSON mediante FileChooser e iniciar juego
     public void onNewGameClicked() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Seleccionar Configuración de Nivel (JSON)");
+        fileChooser.setTitle("Seleccionar configuracion de nivel");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos JSON (*.json)", "*.json"));
 
         File selectedFile = fileChooser.showOpenDialog(mainApp.getPrimaryStage());
         if (selectedFile != null) {
             try {
                 engine.loadConfig(selectedFile.getAbsolutePath());
-                engine.newGame();
-                mainApp.showJuego(); // Carga la escena tras inicializar el motor con éxito
+                mainApp.showJuego();
             } catch (Exception ex) {
-                showGraphicError("Error de Nivel", "No se pudo cargar el mapa", ex.getMessage());
+                showGraphicError("Error de nivel", "No se pudo cargar el mapa", ex.getMessage());
             }
         }
     }
 
-    // Requisito: Uso de FileChooser nativo para Cargar Partida
     public void onLoadClicked() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Seleccionar Partida Guardada JSON");
+        fileChooser.setTitle("Seleccionar partida guardada");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos JSON (*.json)", "*.json"));
 
         File selectedFile = fileChooser.showOpenDialog(mainApp.getPrimaryStage());
@@ -67,15 +73,14 @@ public class GameController {
                 engine.loadGame(selectedFile.getAbsolutePath());
                 mainApp.showJuego();
             } catch (Exception ex) {
-                showGraphicError("Error de Archivo", "No se pudo cargar la partida", ex.getMessage());
+                showGraphicError("Error de archivo", "No se pudo cargar la partida", ex.getMessage());
             }
         }
     }
 
-    // Requisito: Guardar Partida con FileChooser
     public void onSaveClicked() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Guardar Estado Actual");
+        fileChooser.setTitle("Guardar estado actual");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos JSON (*.json)", "*.json"));
 
         File selectedFile = fileChooser.showSaveDialog(mainApp.getPrimaryStage());
@@ -84,42 +89,74 @@ public class GameController {
                 engine.saveGame(selectedFile.getAbsolutePath());
                 refreshAll();
             } catch (Exception ex) {
-                showGraphicError("Error al Guardar", "No se pudo escribir en el disco", ex.getMessage());
+                showGraphicError("Error al guardar", "No se pudo escribir en el disco", ex.getMessage());
             }
         }
     }
 
-    // Requisito obligatorio: Ejecutar acciones sobre ítems sin salir de la pantalla principal
     public void onUseItemClicked(int index) {
         try {
-            boolean success = engine.useItem(index);
-            if (!success) {
-                showGraphicError("Acción Inválida", "Uso de objeto fallido", "El objeto no cumple los requisitos para ser usado ahora.");
+            if (!engine.useItem(index)) {
+                showGraphicError("Accion invalida", "Uso de objeto fallido",
+                        "El objeto no cumple los requisitos para ser usado ahora.");
             }
             refreshAll();
-        } catch (IndexOutOfBoundsException ex) {
-            showGraphicError("Error de Selección", "Índice de inventario corrupto", ex.getMessage());
+            checkGameStatus();
+        } catch (Exception ex) {
+            showGraphicError("Accion invalida", "No se pudo usar el objeto", ex.getMessage());
         }
     }
 
     public void onCellClicked(int row, int col) {
-        boolean moved = engine.movePlayer(row, col);
-        if (!moved) {
-            // Se puede capturar silenciosamente o emitir un sonido si choca con una pared
+        try {
+            // El orden importa: atacar tiene prioridad visual sobre moverse a una celda alcanzable.
+            if (containsCell(engine.getAttackTargets(), row, col)) {
+                engine.attack(row, col);
+            } else {
+                IGameState state = engine.getState();
+                Room room = state.getCurrentRoom();
+                Cell cell = room.getCell(row, col);
+                if (cell.isDoor()) {
+                    engine.openDoor(row, col);
+                } else if (cell.hasItem()) {
+                    engine.pickItem(row, col);
+                } else if (containsCell(engine.getReachableCells(), row, col)) {
+                    engine.movePlayer(row, col);
+                } else {
+                    showGraphicError("Accion invalida", "Celda no disponible",
+                            "La celda seleccionada no es alcanzable ni contiene una accion valida.");
+                }
+            }
+            refreshAll();
+            checkGameStatus();
+        } catch (Exception ex) {
+            showGraphicError("Accion invalida", "No se pudo ejecutar la accion", ex.getMessage());
         }
-        refreshAll();
-        checkGameStatus();
     }
 
     public void onEndTurn() {
-        engine.endTurn();
-        refreshAll();
-        checkGameStatus();
+        try {
+            engine.endTurn();
+            refreshAll();
+            checkGameStatus();
+        } catch (Exception ex) {
+            showGraphicError("Accion invalida", "No se pudo terminar el turno", ex.getMessage());
+        }
+    }
+
+    public IList<int[]> getReachableCells() {
+        return engine.getReachableCells();
+    }
+
+    public IList<int[]> getAttackTargets() {
+        return engine.getAttackTargets();
     }
 
     private void refreshAll() {
         IGameState state = engine.getState();
-        if (state == null) return;
+        if (state == null) {
+            return;
+        }
 
         roomView.update(state);
         playerPanel.update(state);
@@ -128,38 +165,38 @@ public class GameController {
         logPanel.update(state);
     }
 
-    // Requisito: Detectar fin y saltar a la Pantalla de Fin volcando el log acumulado en el IList propio
     private void checkGameStatus() {
         IGameState state = engine.getState();
-        if (state == null) return;
-
-        if (state.isGameOver()) {
-            String mensaje = state.isVictory() ? "¡VICTORIA ABSOLUTA!" : "DEFEAT: Te has quedado sin turnos o sin vida.";
-
-            StringBuilder sb = new StringBuilder();
-            sb.append("--- REGISTRO COMPLETO DE LA SESIÓN ---\n");
-
-            IList<String> eventLog = state.getEventLog();
-            if (eventLog != null) {
-                // Iteración pura compatible con for-each gracias a que IList hereda de Iterable,
-                // usando el iterador cualificado internamente en tu StubList sin hacer imports
-                for (String evento : eventLog) {
-                    sb.append("- ").append(evento).append("\n");
-                }
-            } else {
-                sb.append("Última acción registrada: ").append(state.getLastEvent());
-            }
-
-            mainApp.showFin(mensaje, sb.toString());
+        if (state == null || !state.isGameOver()) {
+            return;
         }
+
+        // Al terminar la partida se muestra el historial completo para justificar el resultado.
+        String message = state.isVictory() ? "VICTORIA ABSOLUTA" : "DERROTA";
+        StringBuilder log = new StringBuilder();
+        log.append("--- REGISTRO COMPLETO DE LA SESION ---\n");
+        IList<String> events = state.getEventLog();
+        for (int i = 0; i < events.size(); i++) {
+            log.append("- ").append(events.get(i)).append("\n");
+        }
+        mainApp.showFin(message, log.toString());
     }
 
-    // Requisito de Usabilidad: Centralización de alertas gráficas sin trazas en la consola
-    private void showGraphicError(String titulo, String cabecera, String contenido) {
+    private boolean containsCell(IList<int[]> cells, int row, int col) {
+        for (int i = 0; i < cells.size(); i++) {
+            int[] cell = cells.get(i);
+            if (cell[0] == row && cell[1] == col) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void showGraphicError(String title, String header, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(titulo);
-        alert.setHeaderText(cabecera);
-        alert.setContentText(contenido);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
         alert.showAndWait();
     }
 }

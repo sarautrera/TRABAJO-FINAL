@@ -1,3 +1,6 @@
+/*
+ * Resumen del fichero: Muestra las estadisticas principales del jugador.
+ */
 package es.proyecto.juego.ui.views;
 
 import es.proyecto.juego.logica.IGameState;
@@ -19,7 +22,7 @@ public class PlayerPanel extends VBox {
         this.setStyle("-fx-background-color: #ECF0F1; -fx-border-color: #BDC3C7;");
 
         pbHp.setPrefWidth(150);
-        pbHp.setStyle("-fx-accent: #E74C3C;"); // Barra roja [cite: 80]
+        pbHp.setStyle("-fx-accent: #E74C3C;");
 
         Label title = new Label("ESTADO DEL JUGADOR");
         title.setStyle("-fx-font-weight: bold;");
@@ -35,6 +38,6 @@ public class PlayerPanel extends VBox {
 
         lblStats.setText("Atq: " + state.getPlayerAttack() + " | Def: " + state.getPlayerDefense() + " | Vel: " + state.getPlayerSpeed());
         lblTurns.setText("Turnos restantes: " + state.getTurnsLeft());
-        lblNav.setText("Salida a " + state.getMinRoomsToExit() + " habs | Puerta a " + state.getDistanceToNearestDoor() + " pasos"); // [cite: 187]
+        lblNav.setText("Salida a " + state.getMinRoomsToExit() + " habs | Puerta a " + state.getDistanceToNearestDoor() + " pasos");
     }
 }

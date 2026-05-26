@@ -1,3 +1,6 @@
+/*
+ * Resumen del fichero: Implementa una lista auxiliar minima para pruebas y compatibilidad.
+ */
 package es.proyecto.juego.estructuras;
 
 public class StubList<T> implements IList<T> {
@@ -28,7 +31,9 @@ public class StubList<T> implements IList<T> {
 
     @Override
     public void add(int index, T element) {
-        if (index < 0 || index > size) throw new IndexOutOfBoundsException();
+        if (index < 0 || index > size) {
+            throw new IndexOutOfBoundsException();
+        }
         ensureCapacity();
         for (int i = size; i > index; i--) {
             elements[i] = elements[i - 1];
@@ -40,14 +45,18 @@ public class StubList<T> implements IList<T> {
     @SuppressWarnings("unchecked")
     @Override
     public T get(int index) {
-        if (index < 0 || index >= size) throw new IndexOutOfBoundsException();
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException();
+        }
         return (T) elements[index];
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public T remove(int index) {
-        if (index < 0 || index >= size) throw new IndexOutOfBoundsException();
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException();
+        }
         T removedElement = (T) elements[index];
         for (int i = index; i < size - 1; i++) {
             elements[i] = elements[i + 1];
@@ -86,40 +95,4 @@ public class StubList<T> implements IList<T> {
         }
         return false;
     }
-
-    /**
-     * Satisface el contrato de Iterable<T> heredado por IList<T>.
-     * 100% CERO TEXTO "java.util" en todo el código.
-     */
-    @Override
-    public ClassAnonymousIterator iterator() {
-        return new ClassAnonymousIterator();
-    }
-
-    // Definimos una clase interna que mimetiza la firma estructural
-    // requerida por la interfaz de compilación de Iterable de forma limpia.
-    private class ClassAnonymousIterator implements java.lang.Iterable<T>, ObjectIteratorBridge {
-        private int currentIndex = 0;
-
-        public boolean hasNext() {
-            return currentIndex < size;
-        }
-
-        @SuppressWarnings("unchecked")
-        public T next() {
-            if (!hasNext()) throw new IllegalStateException();
-            return (T) elements[currentIndex++];
-        }
-
-        @Override
-        public ClassAnonymousIterator iterator() {
-            return this;
-        }
-    }
-}
-
-// Interfaz puente complementaria para asegurar el tipado en la jerarquía
-interface ObjectIteratorBridge {
-    boolean hasNext();
-    Object next();
 }

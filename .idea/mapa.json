@@ -1,7 +1,16 @@
 {
   "tripletas": [
     {"s": "Entrada", "p": "conecta", "o": "Pasillo_Oscuro"},
-    {"s": "Pasillo_Oscuro", "p": "conecta", "o": "Sala_Tesoros"},
-    {"s": "Sala_Tesoros", "p": "contiene", "o": "Cofre_Oro"}
+    {"s": "Pasillo_Oscuro", "p": "conecta", "o": "Tablero_de_ajedrez"},
+    {"s": "Tablero_de_ajedred", "p": "contiene", "o": "Caballo"},
+    {"s": "Pasillo_Oscuro", "p": "conecta", "o": "Sala_parchis"},
+    {"s": "Sala_parchis", "p": "contiene", "o": "Ficha"},
+    {"s": "Sala_parchis", "p": "conecta", "o": "Tablero_monopoli"},
+    {"s": "Tablero_monopoli", "p": "contiene", "o": "Ficha_monopoly"},
+    {"s": "Tablero_de_ajedrez", "p": "conecta", "o": "Bolera"},
+    {"s": "Bolera", "p": "contiene", "o": "Bolo"},
+    {"s": "Bolera", "p": "conecta", "o": "Casa_de_muñecas"},
+    {"s": "Casa_de_muñecas", "p": "contiene", "o": "Muñeca"},
+    {"s": "Casa_de_muñecas", "p": "contiene", "o": "Pocion_curativa"}
   ]
 }

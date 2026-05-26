@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import es.uah.eedd.listas.prueba.matrix.Matrix;
 import es.uah.eedd.listas.prueba.queue.Queue;
+import es.uah.eedd.listas.prueba.simple.MyLinkedList;
 
 import java.io.FileReader;
 public class RoomGraph<T extends Comparable<T>>implements IGraph<T> {
@@ -293,6 +294,72 @@ public class RoomGraph<T extends Comparable<T>>implements IGraph<T> {
             if (arr[i].equals(target)) return i;
         }
         return -1;
+    }
+    /// //CELDAS ALCANZABLES, con velocidad
+    public static MyLinkedList<Integer> getAlcanzable(int[][] matrix, int start, int speed){
+        MyLinkedList<Integer> alcanzable=new MyLinkedList<>();
+        Queue<Integer> q=new Queue<>();
+        int n=matrix.length;
+        int[] distancia=new int[n];
+        for(int i=0; i<n;i++){
+            distancia[i]=-1;
+        }
+        //Inicializamos distancia
+        distancia[start]=0;
+        q.enqueue(start);
+
+        while(!q.isEmpty()){
+            int curr = q.dequeue();
+
+            if(distancia[curr] < speed){
+                for(int neighbor=0; neighbor < n; neighbor++){
+                    if(matrix[curr][neighbor] > 0 && distancia[neighbor] == -1){
+                        distancia[neighbor] = distancia[curr] + 1;
+                        alcanzable.add(neighbor);
+                        q.enqueue(neighbor);
+                    }
+                }
+            }
+        }
+        return alcanzable;
+    }
+    /// Algoritmo dijkstra
+    public static int[] dijkstra(int[][] matrix, int start) {
+        int n = matrix.length;
+        int[] dist = new int[n];
+        boolean[] visited = new boolean[n];
+
+        for (int i = 0; i < n; i++) {
+            dist[i] = Integer.MAX_VALUE;
+            visited[i] = false;
+        }
+
+        dist[start] = 0;
+
+        for (int count = 0; count < n - 1; count++) {
+            // Buscamos el nodo con la distancia mínima que no hayamos visitado
+            int u = -1;
+            for (int i = 0; i < n; i++) {
+                if (!visited[i] && (u == -1 || dist[i] < dist[u])) {
+                    u = i;
+                }
+            }
+
+            if (dist[u] == Integer.MAX_VALUE) break;
+
+            visited[u] = true;
+
+            for (int v = 0; v < n; v++) {
+                // Si hay conexión (matrix[u][v] > 0)
+                if (matrix[u][v] > 0 && !visited[v]) {
+                    int newDist = dist[u] + matrix[u][v];
+                    if (newDist < dist[v]) {
+                        dist[v] = newDist;
+                    }
+                }
+            }
+        }
+        return dist; // Devuelve un array con la distancia mínima a cada nodo
     }
 }
 

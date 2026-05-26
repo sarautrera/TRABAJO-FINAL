@@ -1,0 +1,126 @@
+{
+  "version": "1.0",
+  "titulo": "Mazmorra de Juegos de Mesa",
+  "turnosMaximos": 90,
+  "habitacionInicial": 0,
+  "habitacionSalida": 5,
+  "habitaciones": [
+    {
+      "id": 0,
+      "nombre": "Vestibulo Arcade",
+      "filas": 7,
+      "columnas": 7,
+      "visitadaInicialmente": true,
+      "celdas": [
+        {"fila":0,"columna":3,"tipo":"DOOR","habitacionDestino":1,"bloqueada":false,"salidaExterior":false,"abierta":false},
+        {"fila":2,"columna":1,"tipo":"ITEM","item":{"tipo":"Potion","nombre":"Bebida energetica","curacion":20}},
+        {"fila":4,"columna":5,"tipo":"ITEM","item":{"tipo":"Weapon","nombre":"Mando retro contundente","ataqueBonus":4}},
+        {"fila":3,"columna":3,"tipo":"ENEMY","enemigo":{"nombre":"Pixel corrupto","vidaActual":18,"vidaMaxima":18,"velocidad":1,"ataque":4,"defensa":1}}
+      ]
+    },
+    {
+      "id": 1,
+      "nombre": "Habitacion Buscaminas",
+      "filas": 7,
+      "columnas": 7,
+      "visitadaInicialmente": false,
+      "celdas": [
+        {"fila":6,"columna":3,"tipo":"DOOR","habitacionDestino":0,"bloqueada":false,"salidaExterior":false,"abierta":false},
+        {"fila":0,"columna":3,"tipo":"DOOR","habitacionDestino":2,"bloqueada":false,"salidaExterior":false,"abierta":false},
+        {"fila":1,"columna":1,"tipo":"TRAP","dano":15},
+        {"fila":1,"columna":5,"tipo":"TRAP","dano":15},
+        {"fila":2,"columna":2,"tipo":"TRAP","dano":15},
+        {"fila":3,"columna":4,"tipo":"TRAP","dano":15},
+        {"fila":5,"columna":1,"tipo":"TRAP","dano":15},
+        {"fila":5,"columna":5,"tipo":"TRAP","dano":15},
+        {"fila":2,"columna":5,"tipo":"ITEM","item":{"tipo":"Potion","nombre":"Botiquin de desactivacion","curacion":25}},
+        {"fila":4,"columna":2,"tipo":"ENEMY","enemigo":{"nombre":"Mina con patas","vidaActual":22,"vidaMaxima":22,"velocidad":1,"ataque":6,"defensa":2}}
+      ]
+    },
+    {
+      "id": 2,
+      "nombre": "Habitacion Parchis",
+      "filas": 7,
+      "columnas": 7,
+      "visitadaInicialmente": false,
+      "celdas": [
+        {"fila":6,"columna":3,"tipo":"DOOR","habitacionDestino":1,"bloqueada":false,"salidaExterior":false,"abierta":false},
+        {"fila":0,"columna":3,"tipo":"DOOR","habitacionDestino":3,"bloqueada":false,"salidaExterior":false,"abierta":false},
+        {"fila":2,"columna":2,"tipo":"ENEMY","enemigo":{"nombre":"Ficha roja que te come","vidaActual":24,"vidaMaxima":24,"velocidad":2,"ataque":7,"defensa":2}},
+        {"fila":3,"columna":4,"tipo":"ENEMY","enemigo":{"nombre":"Ficha azul vengativa","vidaActual":24,"vidaMaxima":24,"velocidad":2,"ataque":7,"defensa":2}},
+        {"fila":4,"columna":1,"tipo":"ITEM","item":{"tipo":"Key","nombre":"Seguro de casa del Parchis","puertaObjetivo":4}},
+        {"fila":5,"columna":5,"tipo":"ITEM","item":{"tipo":"Armor","nombre":"Barrera de casilla segura","defensaBonus":3}}
+      ]
+    },
+    {
+      "id": 3,
+      "nombre": "Habitacion de la Oca",
+      "filas": 7,
+      "columnas": 7,
+      "visitadaInicialmente": false,
+      "celdas": [
+        {"fila":6,"columna":3,"tipo":"DOOR","habitacionDestino":2,"bloqueada":false,"salidaExterior":false,"abierta":false},
+        {"fila":0,"columna":3,"tipo":"DOOR","habitacionDestino":4,"bloqueada":true,"salidaExterior":false,"abierta":false},
+        {"fila":3,"columna":3,"tipo":"TRAP","dano":25},
+        {"fila":3,"columna":2,"tipo":"WALL"},
+        {"fila":3,"columna":4,"tipo":"WALL"},
+        {"fila":2,"columna":3,"tipo":"WALL"},
+        {"fila":4,"columna":3,"tipo":"WALL"},
+        {"fila":1,"columna":1,"tipo":"ITEM","item":{"tipo":"Potion","nombre":"De oca a oca y me curo porque me toca","curacion":30}},
+        {"fila":5,"columna":5,"tipo":"ENEMY","enemigo":{"nombre":"Oca furiosa","vidaActual":28,"vidaMaxima":28,"velocidad":1,"ataque":8,"defensa":3}}
+      ]
+    },
+    {
+      "id": 4,
+      "nombre": "Habitacion Ajedrez Caballo",
+      "filas": 7,
+      "columnas": 7,
+      "visitadaInicialmente": false,
+      "celdas": [
+        {"fila":6,"columna":3,"tipo":"DOOR","habitacionDestino":3,"bloqueada":false,"salidaExterior":false,"abierta":false},
+        {"fila":0,"columna":3,"tipo":"DOOR","habitacionDestino":5,"bloqueada":false,"salidaExterior":false,"abierta":false},
+        {"fila":2,"columna":1,"tipo":"ENEMY","enemigo":{"nombre":"Caballo negro en L","vidaActual":32,"vidaMaxima":32,"velocidad":2,"ataque":9,"defensa":3}},
+        {"fila":4,"columna":5,"tipo":"ENEMY","enemigo":{"nombre":"Caballo blanco saltarin","vidaActual":30,"vidaMaxima":30,"velocidad":2,"ataque":8,"defensa":3}},
+        {"fila":2,"columna":3,"tipo":"WALL"},
+        {"fila":3,"columna":1,"tipo":"WALL"},
+        {"fila":3,"columna":5,"tipo":"WALL"},
+        {"fila":4,"columna":3,"tipo":"WALL"},
+        {"fila":1,"columna":5,"tipo":"ITEM","item":{"tipo":"Weapon","nombre":"Espada de dama coronada","ataqueBonus":6}},
+        {"fila":5,"columna":1,"tipo":"ITEM","item":{"tipo":"Potion","nombre":"Enroque sanador","curacion":25}}
+      ]
+    },
+    {
+      "id": 5,
+      "nombre": "Mesa Final",
+      "filas": 7,
+      "columnas": 7,
+      "visitadaInicialmente": false,
+      "celdas": [
+        {"fila":6,"columna":3,"tipo":"DOOR","habitacionDestino":4,"bloqueada":false,"salidaExterior":false,"abierta":false},
+        {"fila":0,"columna":3,"tipo":"DOOR","habitacionDestino":-1,"bloqueada":false,"salidaExterior":true,"abierta":false},
+        {"fila":2,"columna":3,"tipo":"ENEMY","enemigo":{"nombre":"Jefe final: Dado cargado","vidaActual":38,"vidaMaxima":38,"velocidad":1,"ataque":10,"defensa":4}},
+        {"fila":4,"columna":2,"tipo":"ITEM","item":{"tipo":"Armor","nombre":"Reglamento blindado","defensaBonus":4}},
+        {"fila":4,"columna":4,"tipo":"ITEM","item":{"tipo":"Potion","nombre":"Ultima tirada de vida","curacion":35}}
+      ]
+    }
+  ],
+  "conexiones": [
+    {"de":0,"a":1,"dirigida":false},
+    {"de":1,"a":2,"dirigida":false},
+    {"de":2,"a":3,"dirigida":false},
+    {"de":3,"a":4,"dirigida":false},
+    {"de":4,"a":5,"dirigida":false}
+  ],
+  "jugadorInicial": {
+    "nombre":"Jugador de Tablero",
+    "habitacion":0,
+    "fila":6,
+    "columna":3,
+    "vidaActual":100,
+    "vidaMaxima":100,
+    "velocidad":3,
+    "ataqueBase":10,
+    "defensaBase":3,
+    "inventario": []
+  }
+}

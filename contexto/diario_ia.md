@@ -493,6 +493,90 @@ Para cada uso relevante de IA, anadir una entrada con este formato:
 - Critica y riesgos: Track C debe respetar la propiedad `dirigida`; si no aparece, se recomienda tratar conexiones de habitaciones como no dirigidas por defecto.
 - Decision final: el mapa de habitaciones usa conexiones no dirigidas salvo que el JSON final indique explicitamente lo contrario.
 
+### Entrada 33 - Revision de pendientes antes de cierre
+
+- Fecha: 26/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: revisar especificaciones, codigo y estado real para separar lo hecho de lo pendiente.
+- Prompt o peticion: "teniendo en cuenta que esto es una practica de universidad, y no un trabajo, echa un vistazo a las especificaciones y a lo que hay hecho y hazme una lista de lo que falta, aprovecha para revisar errores e inconsistencias"
+- Contexto proporcionado: repositorio completo, documentacion en `docs/` y `contexto/`, codigo Java y tests.
+- Resultado obtenido: se identificaron cinco bloques principales: compilar todo, decidir persistencia minima, integrar UI con estado real, actualizar documentacion y aislar codigo antiguo.
+- Cambios realizados por el equipo: se priorizaron los tres primeros puntos.
+- Validacion: revision manual de documentacion, busquedas en codigo y compilaciones parciales.
+- Critica y riesgos: la revision detecto que Track B estaba fuerte, pero UI/persistencia/documentacion no estaban alineadas con el estado real.
+- Decision final: abordar primero compilacion, persistencia minima e integracion UI.
+
+### Entrada 34 - Correccion de compilacion y dependencias
+
+- Fecha: 26/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: hacer que el proyecto compile sin errores propios de codigo.
+- Prompt o peticion: "haz el 1"
+- Contexto proporcionado: errores de compilacion por `Item` duplicado, tests rotos, uso de Gson sin jar y JavaFX sin configurar.
+- Resultado obtenido: se elimino `es.proyecto.juego.logica.Item`, se corrigio `InventoryPanel` para usar `logica.items.Item`, se arreglo `GameSaveTest`, se renombro el test de mock y se sustituyo la dependencia Gson por persistencia minima con `java.io`.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: compilacion no visual correcta y JUnit con 57 tests correctos.
+- Critica y riesgos: la persistencia sin Gson es intencionadamente minima y no debe presentarse como parser JSON general.
+- Decision final: mantener Java plano para persistencia y evitar dependencia Gson.
+
+### Entrada 35 - Instalacion de JavaFX local
+
+- Fecha: 26/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: permitir ejecutar la UI JavaFX en local.
+- Prompt o peticion: "instalamelo"
+- Contexto proporcionado: JDK 25 instalado, ausencia de JavaFX en el entorno local y necesidad de probar `MainApp`.
+- Resultado obtenido: se descargo e instalo JavaFX SDK 25.0.3 en `lib/javafx-sdk-25.0.3` y se creo `run-game.ps1`.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: compilacion completa con `--module-path lib/javafx-sdk-25.0.3/lib --add-modules javafx.controls,javafx.fxml` correcta.
+- Critica y riesgos: el SDK ocupa espacio en `lib`; si se versiona el repositorio, conviene decidir si se sube o si se documenta como prerequisito.
+- Decision final: usar JavaFX local dentro del proyecto para facilitar pruebas en esta maquina.
+
+### Entrada 36 - Persistencia JSON minima real
+
+- Fecha: 26/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: implementar una carga JSON minima real sin Gson.
+- Prompt o peticion: "haz el 1 y 2"
+- Contexto proporcionado: `levelConfig.example.json`, `gameSave.example.json`, `GameEngineImpl`, `LevelConfig`, `GameSave` y reglas del proyecto.
+- Resultado obtenido: `LevelConfig` parsea el formato JSON del proyecto; `GameEngineImpl.loadConfig()` construye habitaciones, celdas, puertas, enemigos, items, jugador y grafo; `GameSave` guarda/restaura turno, vida, habitacion y posicion.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: compilacion completa correcta, smoke test de carga/guardado correcto y JUnit con 57 tests correctos.
+- Critica y riesgos: `loadGame()` no restaura todavia mundo completo: inventario, equipo, enemigos, objetos y puertas quedan como limitacion documentada.
+- Decision final: considerar la persistencia suficiente como base de practica, dejando clara la limitacion.
+
+### Entrada 37 - Integracion de UI con estado real
+
+- Fecha: 26/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: conectar la interfaz JavaFX con el motor real.
+- Prompt o peticion: "haz el punto 3"
+- Contexto proporcionado: `MainApp`, `GameController`, vistas JavaFX, `IGameState`, `IGameEngine` y motor ya funcional.
+- Resultado obtenido: `MainApp` usa `GameEngineImpl`; `RoomView` pinta sala real; `GameController` decide mover, atacar, recoger item o abrir puerta segun celda; `ActionPanel` conecta guardar/cargar/nueva partida/fin de turno; `InventoryPanel` elimina objetos mock; `LogPanel` muestra eventos reales.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: compilacion completa con JavaFX correcta y JUnit con 57 tests correctos.
+- Critica y riesgos: no se hizo prueba visual automatizada; la prueba de ventana queda manual mediante `run-game.ps1`.
+- Decision final: considerar la UI integrada para una demo funcional de practica.
+
+### Entrada 38 - Aislamiento de codigo antiguo
+
+- Fecha: 26/05/2026
+- Persona responsable: pendiente de completar
+- Herramienta/agente: Codex
+- Objetivo: separar codigo antiguo de prueba del arbol principal del proyecto.
+- Prompt o peticion: "haz el punto 5"
+- Contexto proporcionado: carpeta `src/es/uah/eedd/listas/prueba/...` con codigo antiguo no referenciado por el proyecto principal.
+- Resultado obtenido: se movio la carpeta a `legacy/es_uah_eedd_listas_prueba` y se creo `legacy/README.md` explicando que no forma parte de la entrega ejecutable.
+- Cambios realizados por el equipo: pendiente de revision por el equipo.
+- Validacion: busqueda sin referencias desde `src/main/java`, `test`, `docs` ni `contexto`; compilacion completa y JUnit correctos tras el movimiento.
+- Critica y riesgos: si algun integrante dependia manualmente de esas clases, debe buscarlas ahora en `legacy/`.
+- Decision final: mantener solo `src/main/java`, `test` y `src/main/resources` como arboles activos del proyecto.
+
 ## Metodologia provisional extraida
 
 1. Leer primero la documentacion oficial del proyecto.

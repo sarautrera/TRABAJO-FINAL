@@ -1,67 +1,184 @@
+// Comentario de estudiante: aqui se indica a que paquete pertenece esta clase.
 package es.proyecto.juego.persistencia;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParseException;
+// Comentario de estudiante: aqui se importa una clase que se va a usar.
 import es.proyecto.juego.logica.IGameState;
+
+// Comentario de estudiante: aqui se importa una clase que se va a usar.
+import java.io.BufferedReader;
+// Comentario de estudiante: aqui se importa una clase que se va a usar.
 import java.io.FileReader;
+// Comentario de estudiante: aqui se importa una clase que se va a usar.
 import java.io.FileWriter;
+// Comentario de estudiante: aqui se importa una clase que se va a usar.
 import java.io.IOException;
-import java.io.Reader;
+// Comentario de estudiante: aqui se importa una clase que se va a usar.
 import java.io.Writer;
 
-// Clase responsable de guardar y cargar las partidas. Transforma los datos del juego en un archivo de texto (.json) y viceversa.
+// Comentario de estudiante: aqui empieza una clase, que agrupa datos y metodos.
 public class GameSave {
 
-    // El objeto 'gson' es el motor de la librería de Google.
-    // Usamos 'setPrettyPrinting()' para que el archivo JSON esté ordenado con saltos de línea y tabulaciones, haciéndolo legible para un humano.
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-    //GUARDA: Toma el estado del juego y lo escribe en un archivo de disco.
-            //DATOS DEL MÉTODO:
-            //state: El estado actual de la partida (de donde sacamos la vida, posición, etc.)
-            //path: La ruta del archivo donde queremos guardar (ej: "partida.json")
-            //IOException: Si ocurre un error de lectura/escritura (ej: disco lleno o sin permisos)
+    // Comentario de estudiante: aqui empieza un metodo o constructor.
     public void save(IGameState state, String path) throws IOException {
-        SaveData data = SaveData.fromState(state);  // Extrae los datos numéricos/básicos y los mete en el contenedor 'SaveData'
-
-        // Abre el archivo de texto en modo escritura ('FileWriter')
-        // El uso del 'try' asegura que el arcivo se cierre automáticamente al terminar.
-        try (Writer w = new FileWriter(path)) {
-            gson.toJson(data, w); // La librería Gson convierte el objeto 'data' a texto JSON y lo escribe en el archivo 'w'
+        // Comentario de estudiante: aqui se comprueba una condicion con if.
+        if (state == null) {
+            // Comentario de estudiante: aqui se lanza un error porque algo no es valido.
+            throw new IllegalArgumentException("El estado no puede ser null");
+        // Comentario de estudiante: aqui se cierra un bloque de codigo.
         }
+
+        // Comentario de estudiante: aqui se guarda o actualiza un valor.
+        SaveData data = SaveData.fromState(state);
+        // Comentario de estudiante: aqui se intenta ejecutar codigo que puede fallar.
+        try (Writer writer = new FileWriter(path)) {
+            // Comentario de estudiante: aqui se prepara una instruccion del programa.
+            writer.write("{\n");
+            // Comentario de estudiante: aqui se prepara una instruccion del programa.
+            writer.write("  \"version\": \"" + escape(data.version) + "\",\n");
+            // Comentario de estudiante: aqui se prepara una instruccion del programa.
+            writer.write("  \"turnoActual\": " + data.turnoActual + ",\n");
+            // Comentario de estudiante: aqui se prepara una instruccion del programa.
+            writer.write("  \"jugador\": {\n");
+            // Comentario de estudiante: aqui se prepara una instruccion del programa.
+            writer.write("    \"vidaActual\": " + data.vidaActual + ",\n");
+            // Comentario de estudiante: aqui se prepara una instruccion del programa.
+            writer.write("    \"habitacionActual\": " + data.habitacionActual + ",\n");
+            // Comentario de estudiante: aqui se prepara una instruccion del programa.
+            writer.write("    \"fila\": " + data.fila + ",\n");
+            // Comentario de estudiante: aqui se prepara una instruccion del programa.
+            writer.write("    \"col\": " + data.col + "\n");
+            // Comentario de estudiante: aqui se prepara una instruccion del programa.
+            writer.write("  }\n");
+            // Comentario de estudiante: aqui se prepara una instruccion del programa.
+            writer.write("}\n");
+        // Comentario de estudiante: aqui se cierra un bloque de codigo.
+        }
+    // Comentario de estudiante: aqui se cierra un bloque de codigo.
     }
 
-    //CARGA: Lee un archivo del disco y reconstruye los datos de la partida.
-        //DATOS DEL MÉTODO:
-            //path: La ruta del archivo que queremos leer (ej: "partida.json")
-            //return: Un objeto SaveData con la información recuperada del archivo
-            //IOException Si el archivo no existe o si el formato está corrupto
+    // Comentario de estudiante: aqui empieza un metodo o constructor.
     public SaveData load(String path) throws IOException {
-
-        // Abre el archivo de texto en modo lectura ('FileReader')
-        try (Reader r = new FileReader(path)) {
-            return gson.fromJson(r, SaveData.class);//Gson lee el texto del archivo 'r' y lo transforma en un objeto Java de la clase 'SaveData'
-        } catch (JsonParseException e) {
-            throw new IOException("Partida guardada corrupta: " + e.getMessage(), e);// Si el usuario modificó el archivo JSON a mano y cometió un error de sintaxis,captura el fallo de Gson y lanza una excepción
+        // Comentario de estudiante: aqui se guarda o actualiza un valor.
+        String json = readTextFile(path);
+        // Comentario de estudiante: aqui se comprueba una condicion con if.
+        if (!json.trim().startsWith("{")) {
+            // Comentario de estudiante: aqui se lanza un error porque algo no es valido.
+            throw new IOException("Partida guardada corrupta: no es un objeto JSON");
+        // Comentario de estudiante: aqui se cierra un bloque de codigo.
         }
+
+        // Comentario de estudiante: aqui se guarda o actualiza un valor.
+        String playerJson = LevelConfig.Json.readObject(json, "jugador", false);
+        // Comentario de estudiante: aqui se comprueba una condicion con if.
+        if (playerJson.length() == 0) {
+            // Comentario de estudiante: aqui se guarda o actualiza un valor.
+            playerJson = json;
+        // Comentario de estudiante: aqui se cierra un bloque de codigo.
+        }
+
+        // Comentario de estudiante: aqui se guarda o actualiza un valor.
+        SaveData data = new SaveData();
+        // Comentario de estudiante: aqui se guarda o actualiza un valor.
+        data.version = LevelConfig.Json.readString(json, "version", data.version);
+        // Comentario de estudiante: aqui se guarda o actualiza un valor.
+        data.turnoActual = LevelConfig.Json.readInt(json, "turnoActual", 0);
+        // Comentario de estudiante: aqui se guarda o actualiza un valor.
+        data.vidaActual = LevelConfig.Json.readInt(playerJson, "vidaActual", 100);
+        // Comentario de estudiante: aqui se guarda o actualiza un valor.
+        data.habitacionActual = LevelConfig.Json.readInt(playerJson, "habitacionActual",
+                // Comentario de estudiante: aqui se prepara una instruccion del programa.
+                LevelConfig.Json.readInt(playerJson, "habitacion", 0));
+        // Comentario de estudiante: aqui se guarda o actualiza un valor.
+        data.fila = LevelConfig.Json.readInt(playerJson, "fila", 0);
+        // Comentario de estudiante: aqui se guarda o actualiza un valor.
+        data.col = LevelConfig.Json.readInt(playerJson, "col",
+                // Comentario de estudiante: aqui se prepara una instruccion del programa.
+                LevelConfig.Json.readInt(playerJson, "columna", 0));
+        // Comentario de estudiante: aqui se devuelve el resultado del metodo.
+        return data;
+    // Comentario de estudiante: aqui se cierra un bloque de codigo.
     }
-    // DTO (Data Transfer Object) para aislar la interfaz de la librería JSON, almacena las variables exactas que queremos guardar en el archivo de texto.
+
+    // Comentario de estudiante: aqui empieza un metodo o constructor.
+    private String readTextFile(String path) throws IOException {
+        // Comentario de estudiante: aqui se guarda o actualiza un valor.
+        StringBuilder builder = new StringBuilder();
+        // Comentario de estudiante: aqui se intenta ejecutar codigo que puede fallar.
+        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+            // Comentario de estudiante: aqui se guarda o actualiza un valor.
+            String line = reader.readLine();
+            // Comentario de estudiante: aqui empieza un bucle while.
+            while (line != null) {
+                // Comentario de estudiante: aqui se prepara una instruccion del programa.
+                builder.append(line).append('\n');
+                // Comentario de estudiante: aqui se guarda o actualiza un valor.
+                line = reader.readLine();
+            // Comentario de estudiante: aqui se cierra un bloque de codigo.
+            }
+        // Comentario de estudiante: aqui se cierra un bloque de codigo.
+        }
+        // Comentario de estudiante: aqui se devuelve el resultado del metodo.
+        return builder.toString();
+    // Comentario de estudiante: aqui se cierra un bloque de codigo.
+    }
+
+    // Comentario de estudiante: aqui empieza un metodo o constructor.
+    private static String escape(String text) {
+        // Comentario de estudiante: aqui se guarda o actualiza un valor.
+        StringBuilder escaped = new StringBuilder();
+        // Comentario de estudiante: aqui empieza un bucle for para repetir codigo.
+        for (int i = 0; i < text.length(); i++) {
+            // Comentario de estudiante: aqui se guarda o actualiza un valor.
+            char current = text.charAt(i);
+            // Comentario de estudiante: aqui se comprueba una condicion con if.
+            if (current == '"' || current == '\\') {
+                // Comentario de estudiante: aqui se prepara una instruccion del programa.
+                escaped.append('\\');
+            // Comentario de estudiante: aqui se cierra un bloque de codigo.
+            }
+            // Comentario de estudiante: aqui se prepara una instruccion del programa.
+            escaped.append(current);
+        // Comentario de estudiante: aqui se cierra un bloque de codigo.
+        }
+        // Comentario de estudiante: aqui se devuelve el resultado del metodo.
+        return escaped.toString();
+    // Comentario de estudiante: aqui se cierra un bloque de codigo.
+    }
+
+    // Comentario de estudiante: aqui se prepara una instruccion del programa.
     public static class SaveData {
-        // Datos que se escribirán directamente en el archivo JSON:
-        public String version = "1.0"; // Útil para cuando actualizes el juego y cambies las variables
+        // Comentario de estudiante: aqui se declara una variable o constante de la clase.
+        public String version = "1.0";
+        // Comentario de estudiante: aqui se declara una variable o constante de la clase.
         public int turnoActual;
+        // Comentario de estudiante: aqui se declara una variable o constante de la clase.
         public int vidaActual;
-        public int fila, col; // Posición del jugador
+        // Comentario de estudiante: aqui se declara una variable o constante de la clase.
+        public int habitacionActual;
+        // Comentario de estudiante: aqui se declara una variable o constante de la clase.
+        public int fila;
+        // Comentario de estudiante: aqui se declara una variable o constante de la clase.
+        public int col;
 
-        // Recibe el estado completo del juego y "copia" solo los datos necesarios en un 'SaveData'.
+        // Comentario de estudiante: aqui empieza un metodo o constructor.
         public static SaveData fromState(IGameState state) {
+            // Comentario de estudiante: aqui se guarda o actualiza un valor.
             SaveData data = new SaveData();
+            // Comentario de estudiante: aqui se guarda o actualiza un valor.
             data.turnoActual = state.getTurnCount();
+            // Comentario de estudiante: aqui se guarda o actualiza un valor.
             data.vidaActual = state.getPlayerHp();
+            // Comentario de estudiante: aqui se guarda o actualiza un valor.
+            data.habitacionActual = state.getCurrentRoomId();
+            // Comentario de estudiante: aqui se guarda o actualiza un valor.
             data.fila = state.getPlayerRow();
+            // Comentario de estudiante: aqui se guarda o actualiza un valor.
             data.col = state.getPlayerCol();
+            // Comentario de estudiante: aqui se devuelve el resultado del metodo.
             return data;
+        // Comentario de estudiante: aqui se cierra un bloque de codigo.
         }
+    // Comentario de estudiante: aqui se cierra un bloque de codigo.
     }
+// Comentario de estudiante: aqui se cierra un bloque de codigo.
 }

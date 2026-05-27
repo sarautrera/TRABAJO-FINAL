@@ -66,6 +66,14 @@ public class Player {
         return speed;
     }
 
+    public int getBaseAttack() {
+        return baseAttack;
+    }
+
+    public int getBaseDefense() {
+        return baseDefense;
+    }
+
     public int getEffectiveAttack() {
         int bonus = equippedWeapon == null ? 0 : equippedWeapon.getAttackBonus();
         return baseAttack + bonus;

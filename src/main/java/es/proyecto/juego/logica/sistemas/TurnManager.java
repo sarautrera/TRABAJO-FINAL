@@ -91,6 +91,10 @@ public class TurnManager {
         return turnCount;
     }
 
+    public int getMaxTurns() {
+        return maxTurns;
+    }
+
     public int getTurnsLeft() {
         return Math.max(0, maxTurns - turnCount);
     }

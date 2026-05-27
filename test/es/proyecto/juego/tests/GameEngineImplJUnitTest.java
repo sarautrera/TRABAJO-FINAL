@@ -228,6 +228,55 @@ public class GameEngineImplJUnitTest {
     }
 
     @Test
+    void saveAndLoadGameRestoresInventoryEquipmentRoomAndLog() throws IOException {
+        File levelFile = File.createTempFile("full-save-level", ".json");
+        File saveFile = File.createTempFile("full-save-game", ".json");
+        try {
+            FileWriter writer = new FileWriter(levelFile);
+            writer.write("{\n");
+            writer.write("  \"turnosMaximos\": 20,\n");
+            writer.write("  \"habitacionInicial\": 0,\n");
+            writer.write("  \"habitacionSalida\": 0,\n");
+            writer.write("  \"habitaciones\": [\n");
+            writer.write("    {\"id\": 0, \"nombre\": \"Sala persistente\", \"filas\": 3, \"columnas\": 3,\n");
+            writer.write("     \"celdas\": [\n");
+            writer.write("       {\"fila\": 1, \"columna\": 2, \"tipo\": \"ITEM\", \"item\": {\"tipo\": \"Weapon\", \"nombre\": \"Espada guardada\", \"ataqueBonus\": 5}},\n");
+            writer.write("       {\"fila\": 0, \"columna\": 0, \"tipo\": \"WALL\"}\n");
+            writer.write("     ]}\n");
+            writer.write("  ],\n");
+            writer.write("  \"conexiones\": [],\n");
+            writer.write("  \"jugadorInicial\": {\"nombre\": \"Heroe\", \"habitacion\": 0, \"fila\": 1, \"columna\": 1,\n");
+            writer.write("    \"vidaActual\": 80, \"vidaMaxima\": 100, \"velocidad\": 2, \"ataqueBase\": 10, \"defensaBase\": 3,\n");
+            writer.write("    \"inventario\": []}\n");
+            writer.write("}\n");
+            writer.close();
+
+            GameEngineImpl engine = new GameEngineImpl();
+            engine.loadConfig(levelFile.getAbsolutePath());
+            assertTrue(engine.pickItem(1, 2));
+            engine.endTurn();
+            assertTrue(engine.useItem(0));
+            engine.saveGame(saveFile.getAbsolutePath());
+
+            GameEngineImpl restored = new GameEngineImpl();
+            restored.loadGame(saveFile.getAbsolutePath());
+
+            IGameState state = restored.getState();
+            assertEquals("Sala persistente", state.getCurrentRoomName());
+            assertEquals(1, state.getInventory().size());
+            assertEquals("Espada guardada", state.getEquippedWeaponName());
+            assertEquals(15, state.getPlayerAttack());
+            assertEquals(CellType.EMPTY, state.getCurrentRoom().getCell(1, 2).getType());
+            assertEquals(CellType.WALL, state.getCurrentRoom().getCell(0, 0).getType());
+            assertTrue(state.getTurnCount() >= 1);
+            assertTrue(state.getEventLog().contains("Jugador recoge Espada guardada"));
+        } finally {
+            levelFile.delete();
+            saveFile.delete();
+        }
+    }
+
+    @Test
     void loadConfigBuildsGameFromJson() throws IOException {
         GameEngineImpl engine = new GameEngineImpl();
 

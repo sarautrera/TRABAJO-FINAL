@@ -62,7 +62,7 @@ package es.proyecto.juego.ui.views {
     }
 }
 
-' Relaciones [cite: 39]
+' Relaciones
 MainApp --> GameController
 GameController --> es.proyecto.juego.logica.IGameEngine : "Inyecta"
 MockGameEngine ..|> es.proyecto.juego.logica.IGameEngine : "Implementa"

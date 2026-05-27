@@ -83,6 +83,15 @@ public class GameEngineImpl implements IGameEngine {
 
     @Override
     public void loadGame(String jsonPath) throws IOException {
+        String json = readTextFile(jsonPath);
+        if (json.indexOf("\"habitaciones\"") >= 0 && json.indexOf("\"jugadorInicial\"") >= 0) {
+            LevelConfig.GameConfig config = new LevelConfig().load(jsonPath);
+            applyConfig(config);
+            restoreRuntimeState(json);
+            eventLog.add("Partida cargada desde " + jsonPath);
+            return;
+        }
+
         GameSave.SaveData saveData = new GameSave().load(jsonPath);
         newGame();
         currentRoom = findRoomById(saveData.habitacionActual);
@@ -103,11 +112,11 @@ public class GameEngineImpl implements IGameEngine {
         ensureGameStarted();
         FileWriter writer = new FileWriter(jsonPath);
         try {
-            writer.write(buildTemporarySaveJson());
+            writer.write(buildFullSaveJson());
         } finally {
             writer.close();
         }
-        eventLog.add("Partida guardada temporalmente en " + jsonPath);
+        eventLog.add("Partida guardada en " + jsonPath);
     }
 
     @Override
@@ -438,44 +447,306 @@ public class GameEngineImpl implements IGameEngine {
         return builder.toString();
     }
 
-    private String buildTemporarySaveJson() {
+    private String buildFullSaveJson() {
         StringBuilder builder = new StringBuilder();
-        // Se genera a mano porque el proyecto no depende de una libreria JSON externa.
         builder.append("{\n");
-        builder.append("  \"version\": \"temporal-track-b\",\n");
+        builder.append("  \"version\": \"save-1.0\",\n");
         builder.append("  \"timestampMillis\": ").append(System.currentTimeMillis()).append(",\n");
+        builder.append("  \"turnosMaximos\": ").append(turnManager.getMaxTurns()).append(",\n");
         builder.append("  \"turnoActual\": ").append(turnManager.getTurnCount()).append(",\n");
         builder.append("  \"turnosRestantes\": ").append(turnManager.getTurnsLeft()).append(",\n");
         builder.append("  \"gameOver\": ").append(gameOver).append(",\n");
         builder.append("  \"victory\": ").append(victory).append(",\n");
-        builder.append("  \"jugador\": {\n");
-        builder.append("    \"vidaActual\": ").append(player.getHp()).append(",\n");
-        builder.append("    \"vidaMaxima\": ").append(player.getMaxHp()).append(",\n");
-        builder.append("    \"habitacionActual\": ").append(currentRoom.getId()).append(",\n");
-        builder.append("    \"fila\": ").append(player.getRow()).append(",\n");
-        builder.append("    \"col\": ").append(player.getCol()).append(",\n");
-        builder.append("    \"ataque\": ").append(player.getEffectiveAttack()).append(",\n");
-        builder.append("    \"defensa\": ").append(player.getEffectiveDefense()).append(",\n");
-        builder.append("    \"inventarioSize\": ").append(player.getInventory().size()).append("\n");
-        builder.append("  },\n");
-        builder.append("  \"habitacion\": {\n");
-        builder.append("    \"id\": ").append(currentRoom.getId()).append(",\n");
-        builder.append("    \"nombre\": \"").append(escapeJson(currentRoom.getName())).append("\",\n");
-        builder.append("    \"enemigosVivos\": ").append(countAliveEnemies(currentRoom)).append("\n");
-        builder.append("  },\n");
-        builder.append("  \"ultimoEvento\": \"").append(escapeJson(eventLog.getLastEvent())).append("\"\n");
+        builder.append("  \"habitacionInicial\": ").append(currentRoom.getId()).append(",\n");
+        builder.append("  \"habitacionSalida\": ").append(exitRoomId).append(",\n");
+        appendRoomsJson(builder);
+        builder.append(",\n");
+        appendConnectionsJson(builder);
+        builder.append(",\n");
+        appendPlayerJson(builder);
+        builder.append(",\n");
+        appendEventLogJson(builder);
+        builder.append("\n");
         builder.append("}\n");
         return builder.toString();
     }
 
-    private int countAliveEnemies(Room room) {
-        int count = 0;
-        for (int i = 0; i < room.getEnemies().size(); i++) {
-            if (room.getEnemies().get(i).isAlive()) {
-                count++;
+    private void appendRoomsJson(StringBuilder builder) {
+        builder.append("  \"habitaciones\": [\n");
+        for (int i = 0; i < rooms.size(); i++) {
+            Room room = rooms.get(i);
+            builder.append("    {\n");
+            builder.append("      \"id\": ").append(room.getId()).append(",\n");
+            builder.append("      \"nombre\": \"").append(escapeJson(room.getName())).append("\",\n");
+            builder.append("      \"filas\": ").append(room.getRows()).append(",\n");
+            builder.append("      \"columnas\": ").append(room.getCols()).append(",\n");
+            builder.append("      \"visitadaInicialmente\": ").append(room.isVisited()).append(",\n");
+            appendCellsJson(builder, room);
+            builder.append("\n");
+            builder.append("    }");
+            if (i < rooms.size() - 1) {
+                builder.append(",");
+            }
+            builder.append("\n");
+        }
+        builder.append("  ]");
+    }
+
+    private void appendCellsJson(StringBuilder builder, Room room) {
+        builder.append("      \"celdas\": [");
+        boolean firstCell = true;
+        for (int row = 0; row < room.getRows(); row++) {
+            for (int col = 0; col < room.getCols(); col++) {
+                Cell cell = room.getCell(row, col);
+                if (cell.getType() == CellType.EMPTY) {
+                    continue;
+                }
+                if (!firstCell) {
+                    builder.append(",");
+                }
+                builder.append("\n");
+                appendCellJson(builder, cell, row, col);
+                firstCell = false;
             }
         }
-        return count;
+        if (!firstCell) {
+            builder.append("\n      ");
+        }
+        builder.append("]");
+    }
+
+    private void appendCellJson(StringBuilder builder, Cell cell, int row, int col) {
+        builder.append("        {\"fila\":").append(row)
+                .append(",\"columna\":").append(col);
+        if (cell.isDoor()) {
+            builder.append(",\"tipo\":\"DOOR\"")
+                    .append(",\"habitacionDestino\":").append(cell.getDoorTargetId())
+                    .append(",\"bloqueada\":").append(cell.isDoorLocked())
+                    .append(",\"salidaExterior\":").append(cell.isExteriorExit())
+                    .append(",\"abierta\":").append(cell.isDoorOpen());
+        } else if (cell.hasEnemy()) {
+            Enemy enemy = cell.getEnemy();
+            builder.append(",\"tipo\":\"ENEMY\",\"enemigo\":{")
+                    .append("\"nombre\":\"").append(escapeJson(enemy.getName())).append("\",")
+                    .append("\"vidaActual\":").append(enemy.getHp()).append(",")
+                    .append("\"vidaMaxima\":").append(enemy.getMaxHp()).append(",")
+                    .append("\"velocidad\":").append(enemy.getSpeed()).append(",")
+                    .append("\"ataque\":").append(enemy.getEffectiveAttack()).append(",")
+                    .append("\"defensa\":").append(enemy.getEffectiveDefense())
+                    .append("}");
+        } else if (cell.hasItem()) {
+            builder.append(",\"tipo\":\"ITEM\",\"item\":");
+            appendItemJson(builder, cell.getItem());
+        } else if (cell.getType() == CellType.TRAP) {
+            builder.append(",\"tipo\":\"TRAP\",\"dano\":").append(cell.getTrapDamage());
+        } else if (cell.getType() == CellType.WALL) {
+            builder.append(",\"tipo\":\"WALL\"");
+        }
+        builder.append("}");
+    }
+
+    private void appendConnectionsJson(StringBuilder builder) {
+        builder.append("  \"conexiones\": [");
+        boolean firstConnection = true;
+        for (int i = 0; i < rooms.size(); i++) {
+            int from = rooms.get(i).getId();
+            IList<Integer> neighbors = roomGraph.getNeighbors(from);
+            for (int j = 0; j < neighbors.size(); j++) {
+                if (!firstConnection) {
+                    builder.append(",");
+                }
+                builder.append("\n");
+                builder.append("    {\"de\":").append(from)
+                        .append(",\"a\":").append(neighbors.get(j))
+                        .append(",\"dirigida\":true,\"peso\":1}");
+                firstConnection = false;
+            }
+        }
+        if (!firstConnection) {
+            builder.append("\n  ");
+        }
+        builder.append("]");
+    }
+
+    private void appendPlayerJson(StringBuilder builder) {
+        builder.append("  \"jugadorInicial\": {\n");
+        builder.append("    \"nombre\": \"").append(escapeJson(player.getName())).append("\",\n");
+        builder.append("    \"habitacion\": ").append(currentRoom.getId()).append(",\n");
+        builder.append("    \"fila\": ").append(player.getRow()).append(",\n");
+        builder.append("    \"columna\": ").append(player.getCol()).append(",\n");
+        builder.append("    \"vidaActual\": ").append(player.getHp()).append(",\n");
+        builder.append("    \"vidaMaxima\": ").append(player.getMaxHp()).append(",\n");
+        builder.append("    \"velocidad\": ").append(player.getSpeed()).append(",\n");
+        builder.append("    \"ataqueBase\": ").append(player.getBaseAttack()).append(",\n");
+        builder.append("    \"defensaBase\": ").append(player.getBaseDefense()).append(",\n");
+        builder.append("    \"inventarioMaximo\": ").append(player.getMaxInventorySize()).append(",\n");
+        builder.append("    \"armaEquipada\": ");
+        appendNullableString(builder, player.getEquippedWeapon() == null ? null : player.getEquippedWeapon().getName());
+        builder.append(",\n");
+        builder.append("    \"armaduraEquipada\": ");
+        appendNullableString(builder, player.getEquippedArmor() == null ? null : player.getEquippedArmor().getName());
+        builder.append(",\n");
+        builder.append("    \"inventario\": [");
+        for (int i = 0; i < player.getInventory().size(); i++) {
+            if (i > 0) {
+                builder.append(",");
+            }
+            builder.append("\n      ");
+            appendItemJson(builder, player.getInventory().get(i));
+        }
+        if (!player.getInventory().isEmpty()) {
+            builder.append("\n    ");
+        }
+        builder.append("]\n");
+        builder.append("  }");
+    }
+
+    private void appendEventLogJson(StringBuilder builder) {
+        builder.append("  \"eventLog\": [");
+        IList<String> events = eventLog.getEvents();
+        for (int i = 0; i < events.size(); i++) {
+            if (i > 0) {
+                builder.append(",");
+            }
+            builder.append("\n    \"").append(escapeJson(events.get(i))).append("\"");
+        }
+        if (!events.isEmpty()) {
+            builder.append("\n  ");
+        }
+        builder.append("]");
+    }
+
+    private void appendItemJson(StringBuilder builder, Item item) {
+        builder.append("{\"tipo\":\"");
+        if (item instanceof Weapon) {
+            Weapon weapon = (Weapon) item;
+            builder.append("Weapon\",\"nombre\":\"").append(escapeJson(weapon.getName()))
+                    .append("\",\"ataqueBonus\":").append(weapon.getAttackBonus());
+        } else if (item instanceof Armor) {
+            Armor armor = (Armor) item;
+            builder.append("Armor\",\"nombre\":\"").append(escapeJson(armor.getName()))
+                    .append("\",\"defensaBonus\":").append(armor.getDefenseBonus());
+        } else if (item instanceof Key) {
+            Key key = (Key) item;
+            builder.append("Key\",\"nombre\":\"").append(escapeJson(key.getName()))
+                    .append("\",\"puertaObjetivo\":").append(key.getTargetDoorId());
+        } else if (item instanceof Potion) {
+            Potion potion = (Potion) item;
+            builder.append("Potion\",\"nombre\":\"").append(escapeJson(potion.getName()))
+                    .append("\",\"curacion\":").append(potion.getHpRestore())
+                    .append(",\"usosRestantes\":").append(potion.getUsesLeft());
+        } else {
+            throw new IllegalStateException("Tipo de item no soportado al guardar: " + item.getClass().getName());
+        }
+        builder.append("}");
+    }
+
+    private void appendNullableString(StringBuilder builder, String value) {
+        if (value == null || value.length() == 0) {
+            builder.append("null");
+        } else {
+            builder.append("\"").append(escapeJson(value)).append("\"");
+        }
+    }
+
+    private void restoreRuntimeState(String json) throws IOException {
+        int savedTurn = LevelConfig.Json.readInt(json, "turnoActual", 0);
+        for (int i = 0; i < savedTurn; i++) {
+            turnManager.endRound();
+        }
+
+        restoreEquipment(json);
+        eventLog = readEventLog(json);
+        gameOver = LevelConfig.Json.readBoolean(json, "gameOver", gameOver);
+        victory = LevelConfig.Json.readBoolean(json, "victory", victory);
+    }
+
+    private void restoreEquipment(String json) throws IOException {
+        String playerJson = LevelConfig.Json.readObject(json, "jugadorInicial", false);
+        if (playerJson.length() == 0) {
+            return;
+        }
+        String weaponName = readNullableString(playerJson, "armaEquipada");
+        String armorName = readNullableString(playerJson, "armaduraEquipada");
+        for (int i = 0; i < player.getInventory().size(); i++) {
+            Item item = player.getInventory().get(i);
+            if (weaponName.length() > 0 && item instanceof Weapon && weaponName.equals(item.getName())) {
+                player.equipWeapon((Weapon) item);
+            }
+            if (armorName.length() > 0 && item instanceof Armor && armorName.equals(item.getName())) {
+                player.equipArmor((Armor) item);
+            }
+        }
+    }
+
+    private EventLog readEventLog(String json) throws IOException {
+        EventLog restoredLog = new EventLog();
+        String arrayJson = LevelConfig.Json.readArray(json, "eventLog", false);
+        if (arrayJson.length() == 0) {
+            return restoredLog;
+        }
+        int cursor = 0;
+        while (cursor < arrayJson.length()) {
+            int start = arrayJson.indexOf('"', cursor);
+            if (start < 0) {
+                break;
+            }
+            int end = findJsonStringEnd(arrayJson, start);
+            restoredLog.add(unescapeJson(arrayJson.substring(start + 1, end)));
+            cursor = end + 1;
+        }
+        return restoredLog;
+    }
+
+    private String readNullableString(String json, String key) throws IOException {
+        int keyIndex = json.indexOf("\"" + key + "\"");
+        if (keyIndex < 0) {
+            return "";
+        }
+        int colonIndex = json.indexOf(':', keyIndex);
+        if (colonIndex < 0) {
+            throw new IOException("Campo sin separador: " + key);
+        }
+        int start = colonIndex + 1;
+        while (start < json.length() && Character.isWhitespace(json.charAt(start))) {
+            start++;
+        }
+        if (start < json.length() && json.startsWith("null", start)) {
+            return "";
+        }
+        return LevelConfig.Json.readString(json, key, "");
+    }
+
+    private int findJsonStringEnd(String text, int start) throws IOException {
+        boolean escaped = false;
+        for (int i = start + 1; i < text.length(); i++) {
+            char current = text.charAt(i);
+            if (escaped) {
+                escaped = false;
+            } else if (current == '\\') {
+                escaped = true;
+            } else if (current == '"') {
+                return i;
+            }
+        }
+        throw new IOException("Cadena JSON sin cierre");
+    }
+
+    private String unescapeJson(String text) {
+        StringBuilder builder = new StringBuilder();
+        boolean escaped = false;
+        for (int i = 0; i < text.length(); i++) {
+            char current = text.charAt(i);
+            if (escaped) {
+                builder.append(current);
+                escaped = false;
+            } else if (current == '\\') {
+                escaped = true;
+            } else {
+                builder.append(current);
+            }
+        }
+        return builder.toString();
     }
 
     private String escapeJson(String text) {

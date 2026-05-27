@@ -455,7 +455,7 @@ Estado guardado (`gameSave.json`) contiene:
 
 Punto de integracion: decidir si `GameEngineImpl.loadConfig/loadGame/saveGame` delegan en clases de persistencia de C o si B recibe objetos ya parseados. El contrato actual usa rutas de fichero, por lo que debe coordinarse con C.
 
-Estado temporal de Track B: mientras no este integrada la persistencia de Track C, `GameEngineImpl` puede validar que un fichero JSON existe, iniciar una partida base con `newGame()` y guardar un snapshot minimo. Esta solucion es solo provisional y no sustituye el parseo/serializacion final de `levelConfig.json` y `gameSave.json`.
+Estado real actual: `GameEngineImpl.loadConfig()` reconstruye la configuracion inicial desde JSON y `saveGame()`/`loadGame()` guardan y restauran una partida completa sin usar librerias externas.
 
 Estado real actual de ejemplos JSON: existen `src/main/resources/levelConfig.example.json` y `src/main/resources/gameSave.example.json` coherentes con el escenario base de `newGame()`:
 
@@ -464,7 +464,7 @@ Estado real actual de ejemplos JSON: existen `src/main/resources/levelConfig.exa
 - Jugador `Heroe` en habitacion 0, posicion `(5,3)`, vida 100, velocidad 3, ataque base 10 y defensa base 3.
 - Grafo con conexion no dirigida entre 0 y 1 (`addUndirectedEdge`).
 
-Estos ficheros son ejemplos de contrato para Track C. Estado actual: `loadConfig()` reconstruye habitaciones, celdas, puertas, enemigos, items, jugador y grafo desde `levelConfig.example.json`. `loadGame()` restaura estado basico de partida guardada: turno, vida, habitacion actual y posicion del jugador.
+Estos ficheros son ejemplos de contrato para Track C. Estado actual: `loadConfig()` reconstruye habitaciones, celdas, puertas, enemigos, items, jugador y grafo desde `levelConfig.example.json`. `loadGame()` puede restaurar guardados completos generados por `saveGame()` y mantiene compatibilidad con guardados basicos antiguos.
 
 ## UML que afecta especialmente al Track B
 
@@ -487,7 +487,7 @@ Para Track B conviene preparar:
 
 Nota de planificacion: no fue necesario crear toda la bateria de JUnit al inicio de Fase 0. Una vez estabilizados dominio y `GameEngineImpl`, se creo una bateria JUnit inicial para las clases no visuales principales. Las pruebas manuales quedan solo como apoyo temporal durante desarrollo.
 
-Estado real actual: los tests JUnit estan en `test/es/proyecto/juego/tests`, con `test` como test source root. JUnit 5 esta disponible en `lib`. La bateria actual ejecuta 57 tests correctos por consola. `TestRunner` se conserva como apoyo, pero no sustituye la validacion final.
+Estado real actual: los tests JUnit estan en `test/es/proyecto/juego/tests`, con `test` como test source root. JUnit 5 esta disponible en `lib`. La bateria actual ejecuta 81 tests correctos por consola. `TestRunner` se conserva como apoyo, pero no sustituye la validacion final.
 
 ### `CombatSystem`
 
@@ -545,7 +545,7 @@ Estado real actual: los tests JUnit estan en `test/es/proyecto/juego/tests`, con
 
 - Implementar `CombatSystem`. Base inicial implementada con formula del enunciado, validaciones y variante con roll inyectado para tests.
 - Implementar `TurnManager`. Base inicial implementada con orden circular de actores, turno de jugador, movimiento usado, accion usada y contador global.
-- Implementar movimiento del jugador. Pendiente de integrarlo en `GameEngineImpl`; `MatrixBFS` y `PathFinder.getReachableCells` ya calculan celdas alcanzables.
+- Implementar movimiento del jugador. Integrado en `GameEngineImpl`; `MatrixBFS` y `PathFinder.getReachableCells` calculan celdas alcanzables.
 - Implementar objetivos atacables.
 - Implementar IA basica de enemigos.
 - Implementar `GameEngineImpl.movePlayer()` y `attack()`.
@@ -597,15 +597,14 @@ Estado validado:
 - JavaFX instalado localmente en `lib/javafx-sdk-25.0.3`.
 - Ejecucion local mediante `run-game.ps1`.
 - Compilacion completa con JavaFX correcta.
-- JUnit: 57 tests encontrados, 57 correctos y 0 fallos.
+- JUnit: 81 tests encontrados, 81 correctos y 0 fallos.
 - `loadConfig()` ya construye mundo desde `levelConfig.example.json`: habitaciones, puertas, enemigos, items, jugador y grafo.
-- `saveGame()`/`loadGame()` restauran estado basico: turno, vida, habitacion y posicion.
+- `saveGame()`/`loadGame()` restauran una partida completa: turno, flags de final, habitaciones, puertas, enemigos, objetos presentes, jugador, inventario, equipo, conexiones y log.
 - UI integrada con `GameEngineImpl`: `RoomView` pinta sala real, `InventoryPanel` usa inventario real, `LogPanel` muestra eventos reales y `ActionPanel` conecta guardar/cargar/nueva partida/fin de turno.
 - Click en celda decide accion: atacar enemigo, abrir puerta, recoger item o mover.
 
 Limitaciones pendientes:
 
-- La persistencia de partida no guarda todavia inventario completo, equipo equipado, enemigos derrotados o danados, objetos recogidos ni puertas abiertas.
 - Las puertas reciprocas y coordenadas exactas de entrada entre habitaciones siguen pendientes si el JSON final las exige.
 - Queda pendiente decidir si `IList` debe extender `Iterable`.
 - Queda pendiente registrar coverage final de IntelliJ.
